@@ -1,0 +1,14 @@
+.categoryCard {
+  display: block;
+  padding: 2rem;
+  text-decoration: none;
+}
+
+.categoryCard h3 {
+  margin-bottom: 0.5rem;
+  color: var(--text-white);
+}
+
+.categoryCard:hover h3 {
+  color: var(--gold-accent);
+}

@@ -1,49 +1,514 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  /* Brand palette (derived from the Plan.A.Day / Goodwill Printers logos) */
+  --brand-blue: #203090;   /* deep indigo from the logos */
+  --brand-navy: #16235c;   /* darker navy for headings */
+  --blue: #2b4cdb;         /* primary interactive blue */
+  --blue-hover: #1e3bb8;
+  --blue-50: #eef2ff;
+  --blue-100: #e0e7ff;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+  /* Neutrals (white / grey) */
+  --bg: #ffffff;
+  --bg-alt: #f4f7fc;       /* light blue-grey for alternating sections */
+  --surface: #ffffff;
+  --heading: #16235c;
+  --text: #334155;
+  --muted: #64748b;
+  --border: #e6e9f2;
 
-html {
-  height: 100%;
-}
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow: 0 10px 28px rgba(16, 24, 40, 0.08);
+  --shadow-lg: 0 22px 48px rgba(22, 35, 92, 0.16);
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
+  --border-radius: 14px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Two-tier header: utility bar (~32px) + main nav (~76px) */
+  --header-height: 108px;
 
-body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Legacy aliases — keep older markup/inline styles consistent with the new theme */
+  --primary-dark: #ffffff;
+  --primary-navy: #f4f7fc;
+  --gold-accent: #2b4cdb;
+  --gold-light: #16235c;
+  --text-white: #1f2937;
+  --text-gray: #475569;
+  --text-gray-dark: #94a3b8;
+  --glass-bg: #ffffff;
+  --glass-border: #e6e9f2;
 }
 
 * {
   box-sizing: border-box;
-  padding: 0;
   margin: 0;
+  padding: 0;
+}
+
+/* On mobile the utility bar is hidden, so the header is shorter. */
+@media (max-width: 991px) {
+  :root {
+    --header-height: 64px;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-playfair), serif;
+  font-weight: 700;
+  color: var(--heading);
+  margin-bottom: 1rem;
+  letter-spacing: -0.01em;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+  transition: var(--transition);
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+a:hover {
+  color: var(--blue);
+}
+
+::selection {
+  background: var(--blue-100);
+  color: var(--brand-navy);
+}
+
+/* Base Layout Classes */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+main {
+  flex: 1;
+  /* Offset content below the fixed header so nothing sits behind the navbar */
+  padding-top: var(--header-height);
+}
+
+/* Card surface (formerly glassmorphism) */
+.glass-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.glass-card:hover {
+  border-color: var(--blue-100);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-5px);
+}
+
+/* UI Elements */
+.btn-primary {
+  display: inline-block;
+  background-color: var(--blue);
+  color: #ffffff;
+  padding: 0.8rem 1.6rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-family: var(--font-inter);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(43, 76, 219, 0.25);
+  transition: var(--transition);
+}
+
+.btn-primary:hover {
+  background-color: var(--blue-hover);
+  transform: translateY(-2px);
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(43, 76, 219, 0.32);
+}
+
+.btn-secondary {
+  display: inline-block;
+  background-color: #ffffff;
+  color: var(--blue);
+  padding: 0.8rem 1.6rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-family: var(--font-inter);
+  border: 1px solid var(--blue);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-secondary:hover {
+  background-color: var(--blue);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.section-padding {
+  padding: 5rem 0;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: var(--blue-50);
+  color: var(--blue);
+  border: 1px solid var(--blue-100);
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* Grid Layouts */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 2rem;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 2rem;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .grid-2, .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
   }
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Hero Section Specifics */
+.hero {
+  position: relative;
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+  padding: 2rem;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(43, 76, 219, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 80% 0%, rgba(32, 48, 144, 0.07) 0%, transparent 40%),
+    linear-gradient(180deg, #ffffff 0%, var(--bg-alt) 100%);
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(32, 48, 144, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(32, 48, 144, 0.035) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(circle at center, #000 0%, transparent 75%);
+  -webkit-mask-image: radial-gradient(circle at center, #000 0%, transparent 75%);
+  pointer-events: none;
+}
+
+.hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.hero h1 {
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  animation: fadeInUp 1s ease-out;
+}
+
+.hero p {
+  font-size: clamp(1.125rem, 2vw, 1.25rem);
+  color: var(--muted);
+  max-width: 800px;
+  margin: 0 auto 2.5rem;
+  animation: fadeInUp 1s ease-out 0.2s backwards;
+}
+
+.hero .cta-group {
+  animation: fadeInUp 1s ease-out 0.4s backwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Form Elements */
+input, textarea, select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: var(--font-inter);
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  transition: var(--transition);
+}
+
+input::placeholder, textarea::placeholder {
+  color: #aab2c0;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--blue);
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(43, 76, 219, 0.15);
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Breadcrumbs (shared across section, category and product pages) */
+.breadcrumbs {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.breadcrumbs ol {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0;
+  margin: 0;
+}
+.breadcrumbs li {
+  display: flex;
+  align-items: center;
+}
+.breadcrumbs a {
+  color: var(--muted);
+}
+.breadcrumbs a:hover {
+  color: var(--blue);
+  text-decoration: underline;
+}
+.breadcrumbs .separator {
+  margin: 0 0.5rem;
+  color: #cbd5e1;
+}
+.breadcrumbs .current {
+  color: var(--brand-navy);
+  font-weight: 600;
+}
+
+/* Home banner carousel */
+.banner-carousel {
+  position: relative;
+}
+.banner-stage {
+  position: relative;
+  width: 100%;
+  /* Wide hero ratio tuned to common landscape banner uploads (~2:1–2.5:1).
+     Off-ratio images are filled by the blurred backdrop below. */
+  aspect-ratio: 9 / 4;
+  background: var(--bg-alt);
+  overflow: hidden;
+}
+@media (max-width: 768px) {
+  /* Taller stage on mobile so a contained wide banner isn't a thin strip */
+  .banner-stage {
+    aspect-ratio: 3 / 2;
+  }
+}
+.banner-slide {
+  position: absolute;
+  inset: 0;
+}
+.banner-slide a,
+.banner-slide picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.banner-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.banner-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  /* Blurred + dimmed copy of the banner so the letterbox area is filled with the
+     image's own colours — a small or off-ratio image still reads as full-bleed. */
+  filter: blur(34px) saturate(1.3) brightness(0.9);
+  transform: scale(1.25);
+}
+.banner-img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  /* Show the whole banner — never crop the uploaded image */
+  object-fit: contain;
+  display: block;
+}
+.banner-dots {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+}
+.banner-dots button {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(22, 35, 92, 0.28);
+  cursor: pointer;
+  padding: 0;
+  transition: var(--transition);
+}
+.banner-dots button.active {
+  background: var(--blue);
+  width: 26px;
+  border-radius: 6px;
+}
+.banner-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--brand-navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+.banner-arrow:hover {
+  background: #fff;
+  color: var(--blue);
+}
+.banner-arrow.prev { left: 16px; }
+.banner-arrow.next { right: 16px; }
+@media (max-width: 640px) {
+  .banner-arrow { display: none; }
+}
+
+/* Loading skeletons (shimmer) */
+.skeleton {
+  background: linear-gradient(90deg, #eef2f8 25%, #e3e9f3 37%, #eef2f8 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 10px;
+}
+@keyframes shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: 0 0; }
+}
+.skel-grid {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+.prod-skel {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 992px) {
+  .prod-skel {
+    grid-template-columns: 1.2fr 1fr;
+    gap: 3rem;
+  }
+}
+.catalog-skel {
+  display: grid;
+  gap: 2rem;
+  align-items: start;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 768px) {
+  .catalog-skel {
+    grid-template-columns: 250px 1fr;
+  }
+}
+
+/* Floating WhatsApp button (site-wide) */
+.whatsapp-fab {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 1100;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #25d366;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 22px rgba(37, 211, 102, 0.45);
+  transition: var(--transition);
+}
+.whatsapp-fab:hover {
+  transform: scale(1.08);
+  color: #fff;
+}
+.whatsapp-fab svg {
+  width: 30px;
+  height: 30px;
 }
