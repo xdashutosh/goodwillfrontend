@@ -1,16 +1,29 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { API_BASE } from '@/lib/api';
+import { API_BASE, fetchJson } from '@/lib/api';
+import ProductCatalog from '@/components/products/ProductCatalog';
+import CatalogSkeleton from '@/components/products/CatalogSkeleton';
+import SectionCategoryTags from '@/components/products/SectionCategoryTags';
 import styles from './section.module.css';
+import diaryHeader from '@/assets/header/diary.png';
+import organizerHeader from '@/assets/header/organizer.png';
+import corporateHeader from '@/assets/header/corporate.png';
+import notebookHeader from '@/assets/header/notebook.png';
 
-// Fetch section data
+// Designed header banners shown full-width at the top of a section page,
+// keyed by section slug. Sections without an entry fall back to the text hero.
+const HEADER_IMAGES = {
+  diaries: diaryHeader,
+  organizers: organizerHeader,
+  'corporate-gifts': corporateHeader,
+  notebooks: notebookHeader,
+};
+
+// Fetch section data (retries transient backend failures; null on 404)
 async function getSection(slug) {
-  const res = await fetch(`${API_BASE}/api/sections/${slug}`, { next: { revalidate: 60 } });
-  if (!res.ok) {
-    if (res.status === 404) return null;
-    throw new Error('Failed to fetch section');
-  }
-  return res.json();
+  return fetchJson(`/api/sections/${slug}`);
 }
 
 // Pre-render every section at build time (falls back to on-demand if the API is down)
@@ -48,17 +61,25 @@ export default async function SectionPage({ params }) {
     notFound();
   }
 
+  const headerImage = HEADER_IMAGES[slug];
+
   return (
     <>
-      <section className="hero" style={{ minHeight: '40vh', backgroundImage: section.image_url ? `linear-gradient(rgba(10, 22, 40, 0.7), rgba(10, 22, 40, 0.9)), url(${section.image_url})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
-        <div className="container">
-          <h1>{section.name}</h1>
-          <p>{section.description}</p>
+      {headerImage ? (
+        <div className={styles.headerBanner}>
+          <Image src={headerImage} alt={section.name} priority sizes="100vw" className={styles.headerBannerImg} />
         </div>
-      </section>
+      ) : (
+        <section className="hero" style={{ minHeight: '40vh', backgroundImage: section.image_url ? `linear-gradient(rgba(10, 22, 40, 0.7), rgba(10, 22, 40, 0.9)), url(${section.image_url})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+          <div className="container">
+            <h1>{section.name}</h1>
+            <p>{section.description}</p>
+          </div>
+        </section>
+      )}
 
       {/* Breadcrumbs */}
-      <div className="container" style={{ padding: '2rem 1.5rem 0' }}>
+      <div className="container" style={{ padding: '1rem 1.5rem 0' }}>
         <nav className="breadcrumbs" aria-label="breadcrumb">
           <ol>
             <li><Link href="/">Home</Link></li>
@@ -67,36 +88,21 @@ export default async function SectionPage({ params }) {
         </nav>
       </div>
 
-      <section className="section-padding">
+      <section className="section-padding" style={{ paddingTop: '1.25rem' }}>
         <div className="container">
-          <div className="text-center" style={{ marginBottom: '3rem' }}>
+          <div className="text-center" style={{ marginBottom: '0.85rem' }}>
             <h2>Categories in {section.name}</h2>
           </div>
 
-          <div className="grid-3">
-            {section.categories && section.categories.length > 0 ? (
-              section.categories.map((cat) => (
-                <Link href={`/products?section=${section.slug}&category=${cat.slug}`} key={cat.id} className={`glass-card ${styles.categoryCard}`}>
-                  <div className="card-content">
-                    <h3>{cat.name}</h3>
-                    {cat.size_label && <span className="badge">{cat.size_label}</span>}
-                    {cat.type_label && <span className="badge" style={{ marginLeft: '0.5rem' }}>{cat.type_label}</span>}
-                    <p style={{ marginTop: '1rem', color: 'var(--text-gray)' }}>{cat.description || `Explore all ${cat.name}`}</p>
-                  </div>
-                </Link>
-              ))
-            ) : (
-              <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: 'var(--text-gray)' }}>
-                <p>No categories found in this section.</p>
-              </div>
-            )}
-          </div>
+          {/* Category tags in a single line at the top */}
+          <Suspense fallback={null}>
+            <SectionCategoryTags basePath={`/${section.slug}`} categories={section.categories || []} />
+          </Suspense>
 
-          <div className="text-center" style={{ marginTop: '4rem' }}>
-            <Link href={`/products?section=${section.slug}`} className="btn-primary">
-              View All {section.name} Products
-            </Link>
-          </div>
+          {/* Full product collection (same as the Our Collection page), scoped to this section */}
+          <Suspense fallback={<CatalogSkeleton />}>
+            <ProductCatalog lockedSection={section.slug} basePath={`/${section.slug}`} />
+          </Suspense>
         </div>
       </section>
     </>

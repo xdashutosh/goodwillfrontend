@@ -1,19 +1,18 @@
-import { Inter, Playfair_Display } from 'next/font/google';
+import { Cormorant_Garamond } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import WhatsAppFab from '@/components/layout/WhatsAppFab';
 import { API_BASE } from '@/lib/api';
 
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-});
+// Body/UI font — Avenir Next. It's a proprietary (Apple/Linotype) font, not
+// available via next/font/google, so it's set as a system font stack on the
+// --font-inter variable in globals.css rather than loaded here.
 
-const playfair = Playfair_Display({
+const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
-  variable: '--font-playfair',
+  weight: ['600'],
+  variable: '--font-cormorant',
   display: 'swap',
 });
 
@@ -98,7 +97,7 @@ async function getNavData() {
 export default async function RootLayout({ children }) {
   const navData = await getNavData();
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
+    <html lang="en" className={`${cormorant.variable}`}>
       <body>
         <Header navData={navData} />
         <main>{children}</main>

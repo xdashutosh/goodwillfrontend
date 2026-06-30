@@ -79,11 +79,11 @@ export default function ProductCatalog({ lockedSection = '', lockedCategory = ''
     if (key !== 'page') params.set('page', '1');
 
     const qs = params.toString();
-    router.push(qs ? `${basePath}?${qs}` : basePath);
+    router.push(qs ? `${basePath}?${qs}` : basePath, { scroll: false });
   };
 
   const clearFilters = () => {
-    router.push(basePath);
+    router.push(basePath, { scroll: false });
   };
 
   // Changing the section also clears any category selection, since the category
@@ -95,7 +95,7 @@ export default function ProductCatalog({ lockedSection = '', lockedCategory = ''
     params.delete('category');
     params.set('page', '1');
     const qs = params.toString();
-    router.push(qs ? `${basePath}?${qs}` : basePath);
+    router.push(qs ? `${basePath}?${qs}` : basePath, { scroll: false });
   };
 
   return (
@@ -217,37 +217,27 @@ export default function ProductCatalog({ lockedSection = '', lockedCategory = ''
         ) : (
           <div className={`products-${view}`}>
             {products.map(product => (
-              <div key={product.id} className="product-card glass-card">
-                <Link href={`/product/${product.slug}`} className="product-img-wrap">
+              <Link key={product.id} href={`/product/${product.slug}`} className="product-card">
+                <div className="product-img-wrap">
                   {product.images && product.images.length > 0 ? (
-                    <img 
-                      src={product.images.find(img => img.is_primary)?.thumbnail_url || product.images[0].thumbnail_url} 
-                      alt={product.name} 
-                      className="product-img" 
-                      loading="lazy" 
+                    <img
+                      src={product.images.find(img => img.is_primary)?.thumbnail_url || product.images[0].thumbnail_url}
+                      alt={product.name}
+                      className="product-img"
+                      loading="lazy"
                     />
                   ) : (
                     <div className="no-img">No Image</div>
                   )}
-                </Link>
+                </div>
                 <div className="product-info">
                   <div className="product-category">{product.section_name} • {product.category_name}</div>
-                  <Link href={`/product/${product.slug}`}>
-                    <h3 className="product-title">{product.name}</h3>
-                  </Link>
+                  <h3 className="product-title">{product.name}</h3>
                   {view === 'list' && <p className="product-desc">{product.description?.substring(0, 150)}...</p>}
-                  
-                  <div className="product-meta">
-                    {product.cover_style && <span className="badge">{product.cover_style}</span>}
-                  </div>
-                  
-                  <div className="product-actions">
-                    <Link href={`/product/${product.slug}`} className="btn-secondary" style={{ width: '100%', textAlign: 'center', padding: '0.45rem', fontSize: '0.85rem' }}>
-                      View Details
-                    </Link>
-                  </div>
+
+                  <span className="product-link">View Details<span className="arrow" aria-hidden="true"> →</span></span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
@@ -278,7 +268,7 @@ export default function ProductCatalog({ lockedSection = '', lockedCategory = ''
         .catalog-container {
           display: grid;
           grid-template-columns: 1fr;
-          gap: 2rem;
+          gap: 1.5rem;
           align-items: start;
         }
 
@@ -292,11 +282,21 @@ export default function ProductCatalog({ lockedSection = '', lockedCategory = ''
           padding: 1.5rem;
           position: sticky;
           top: 100px;
+          border-radius: 0;
+        }
+
+        /* These are glass-cards but act as static chrome, not interactive
+           cards — cancel the global hover lift so they don't pop. */
+        .sidebar:hover,
+        .catalog-header:hover {
+          transform: none;
+          box-shadow: var(--shadow-sm);
+          border-color: var(--border);
         }
 
         .sidebar h3 {
-          margin-bottom: 1.5rem;
-          font-size: 1.25rem;
+          margin-bottom: 1rem;
+          font-size: 1.19rem;
           border-bottom: 1px solid var(--glass-border);
           padding-bottom: 0.5rem;
         }
@@ -309,7 +309,7 @@ export default function ProductCatalog({ lockedSection = '', lockedCategory = ''
           cursor: pointer;
           margin-bottom: 1rem;
           font-family: var(--font-inter);
-          font-size: 0.85rem;
+          font-size: 0.79rem;
         }
 
         .clear-btn:hover {
@@ -317,19 +317,19 @@ export default function ProductCatalog({ lockedSection = '', lockedCategory = ''
         }
 
         .filter-group {
-          margin-bottom: 1.5rem;
+          margin-bottom: 1.1rem;
         }
 
         .filter-group h4 {
           font-family: var(--font-inter);
-          font-size: 0.9rem;
+          font-size: 0.84rem;
           color: var(--gold-light);
           margin-bottom: 0.5rem;
         }
 
         .filter-group select {
           padding: 0.5rem;
-          font-size: 0.9rem;
+          font-size: 0.84rem;
         }
 
         .catalog-header {
@@ -338,8 +338,9 @@ export default function ProductCatalog({ lockedSection = '', lockedCategory = ''
           justify-content: space-between;
           align-items: center;
           padding: 1rem 1.5rem;
-          margin-bottom: 2rem;
+          margin-bottom: 1.25rem;
           gap: 1rem;
+          border-radius: 0;
         }
 
         .catalog-controls {
@@ -377,8 +378,8 @@ export default function ProductCatalog({ lockedSection = '', lockedCategory = ''
 
         .products-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-          gap: 1.25rem;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 2rem 1.5rem;
         }
 
         .products-list {
@@ -388,13 +389,25 @@ export default function ProductCatalog({ lockedSection = '', lockedCategory = ''
         }
 
         .product-card {
-          overflow: hidden;
           display: flex;
           flex-direction: column;
+          text-decoration: none;
+          color: inherit;
         }
 
         .products-list .product-card {
           flex-direction: row;
+          gap: 1.5rem;
+          padding: 1rem;
+          border: 1px solid var(--border);
+          border-radius: var(--border-radius);
+          background: var(--surface);
+          transition: var(--transition);
+        }
+
+        .products-list .product-card:hover {
+          border-color: var(--blue-100);
+          box-shadow: var(--shadow);
         }
 
         .product-img-wrap {
@@ -404,13 +417,19 @@ export default function ProductCatalog({ lockedSection = '', lockedCategory = ''
           position: relative;
           aspect-ratio: 1 / 1;
           background: #f5f7fb;
+          border-radius: var(--border-radius);
           overflow: hidden;
-          padding: 0.6rem;
+          padding: 0.75rem;
+          transition: var(--transition);
+        }
+
+        .product-card:hover .product-img-wrap {
+          box-shadow: var(--shadow);
         }
 
         .products-list .product-img-wrap {
-          width: 220px;
-          aspect-ratio: auto;
+          width: 200px;
+          aspect-ratio: 1 / 1;
           flex-shrink: 0;
         }
 
@@ -436,55 +455,86 @@ export default function ProductCatalog({ lockedSection = '', lockedCategory = ''
         }
 
         .product-info {
-          padding: 0.75rem 0.9rem 0.9rem;
+          padding: 0.85rem 0.15rem 0;
           display: flex;
           flex-direction: column;
           flex: 1;
         }
 
         .product-category {
-          font-size: 0.8rem;
-          color: var(--gold-accent);
+          font-size: 0.66rem;
+          font-weight: 600;
+          color: var(--blue);
           text-transform: uppercase;
-          letter-spacing: 0.05em;
-          margin-bottom: 0.5rem;
+          letter-spacing: 0.06em;
+          margin-bottom: 0.4rem;
         }
 
         .product-title {
-          font-family: var(--font-playfair);
-          font-size: 0.98rem;
-          line-height: 1.3;
+          font-family: var(--font-cormorant), Georgia, serif;
+          font-size: 1.12rem;
+          font-weight: 600;
+          line-height: 1.25;
           color: var(--heading);
-          margin-bottom: 0.5rem;
+          margin-bottom: 0.6rem;
           transition: var(--transition);
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
           /* Reserve two lines so 1- and 2-line titles keep cards the same height */
-          min-height: 2.6em;
+          min-height: 2.5em;
         }
 
-        .product-title:hover {
+        .product-card:hover .product-title {
           color: var(--blue);
         }
 
-        .product-meta {
+        .product-link {
           margin-top: auto;
-          padding: 0.55rem 0 0.4rem;
-          /* Reserve the badge row so cards with/without a badge stay even */
-          min-height: 2.1rem;
-          display: flex;
+          align-self: flex-start;
+          font-size: 0.79rem;
+          font-weight: 600;
+          color: var(--blue);
+          background: var(--blue-50);
+          border: 1px solid var(--blue-100);
+          padding: 0.5rem 1.1rem;
+          border-radius: 9999px;
+          display: inline-flex;
           align-items: center;
-          gap: 0.5rem;
-          flex-wrap: wrap;
+          transition: var(--transition);
+        }
+
+        .product-link .arrow {
+          transition: transform 0.25s ease;
+        }
+
+        /* Pop the button on hover: fill with the brand blue and lift */
+        .product-card:hover .product-link,
+        .product-link:hover {
+          background: var(--blue);
+          color: #ffffff;
+          border-color: var(--blue);
+          transform: translateY(-3px) scale(1.05);
+          box-shadow: 0 10px 20px rgba(6, 41, 110, 0.32);
+        }
+
+        .product-card:hover .product-link .arrow,
+        .product-link:hover .arrow {
+          transform: translateX(4px);
+        }
+
+        .product-desc {
+          color: var(--muted);
+          font-size: 0.84rem;
+          margin-bottom: 0.6rem;
         }
 
         .loading {
           text-align: center;
           padding: 4rem;
           color: var(--gold-accent);
-          font-size: 1.2rem;
+          font-size: 1.14rem;
         }
 
         .no-results {

@@ -1,5 +1,18 @@
 /* Home page styles (migrated out of styled-jsx so the page can stay a Server Component) */
 
+/* Home-page blue override: every blue accent on the home page resolves to
+   #06296e. Scoped to this wrapper so the header/footer (outside <main>) and
+   other pages keep the default palette. Light tints (--blue-50/100) are left
+   as-is so they stay usable as backgrounds/borders. */
+.home {
+  --blue: #06296e;
+  --blue-hover: #041d4f;
+  --gold-accent: #06296e;
+  /* Soft greyish base; alternating sections sit a touch darker for rhythm */
+  --bg-alt: #e9ebef;
+  background-color: #f3f4f6;
+}
+
 /* Professional section headings — eyebrow label + title + subtitle */
 .sectionHeading {
   text-align: center;
@@ -12,7 +25,7 @@
   align-items: center;
   gap: 0.7rem;
   font-family: var(--font-inter);
-  font-size: 0.76rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -41,7 +54,7 @@
 
 .sectionSubtitle {
   color: var(--muted);
-  font-size: 1.02rem;
+  font-size: 0.96rem;
   line-height: 1.7;
   margin: 0 auto;
   max-width: 620px;
@@ -76,21 +89,21 @@
 
 .sectionCard p {
   color: var(--text-gray);
-  font-size: 0.9rem;
+  font-size: 0.84rem;
   margin-bottom: 1.5rem;
 }
 
 .exploreLink {
   color: var(--gold-accent);
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.84rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .catCount {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.74rem;
   color: var(--text-gray-dark);
   margin-top: 0.5rem;
 }
@@ -121,13 +134,13 @@
 
 .uspItem h4 {
   font-family: var(--font-inter);
-  font-size: 1rem;
+  font-size: 0.94rem;
   margin-bottom: 0.25rem;
   color: var(--heading);
 }
 
 .uspItem p {
-  font-size: 0.85rem;
+  font-size: 0.79rem;
   color: var(--muted);
 }
 
@@ -219,7 +232,7 @@
   align-items: center;
   justify-content: center;
   color: var(--text-gray-dark);
-  font-size: 0.85rem;
+  font-size: 0.79rem;
   letter-spacing: 0.02em;
 }
 
@@ -231,7 +244,7 @@
 }
 
 .featuredCat {
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   font-weight: 600;
   color: var(--blue);
   text-transform: uppercase;
@@ -242,7 +255,7 @@
   margin: 0.3rem 0 0;
   color: var(--heading);
   font-family: var(--font-inter);
-  font-size: 1.05rem;
+  font-size: 0.99rem;
   line-height: 1.35;
   transition: color 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -261,7 +274,7 @@
   height: 1.1rem;
   margin-top: 0.6rem;
   font-family: var(--font-inter);
-  font-size: 0.8rem;
+  font-size: 0.74rem;
   font-weight: 600;
   line-height: 1.1rem;
   letter-spacing: 0.01em;
@@ -283,7 +296,7 @@
 .featuredCard:focus-visible {
   outline: none;
   border-color: var(--blue-100);
-  box-shadow: 0 0 0 3px rgba(43, 76, 219, 0.18), var(--shadow-lg);
+  box-shadow: 0 0 0 3px rgba(6, 41, 110, 0.18), var(--shadow-lg);
 }
 
 /* Accessibility: disable all motion, keep the cue statically visible. */
@@ -312,16 +325,23 @@
   }
 }
 
-/* Our Collections — image + data cards (2-up) */
+/* Our Collections — all categories on a single row */
 .collectionGrid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.75rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
 }
 
-@media (min-width: 768px) {
+/* Tablet: 2-up, mobile: stacked */
+@media (max-width: 991px) {
   .collectionGrid {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 540px) {
+  .collectionGrid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -335,7 +355,7 @@
 }
 
 .collectionImgWrap {
-  aspect-ratio: 3 / 2;
+  aspect-ratio: 1 / 1;
   background: #ffffff;
   overflow: hidden;
 }
@@ -343,9 +363,8 @@
 .collectionImgWrap img {
   width: 100%;
   height: 100%;
-  /* Contain so no banner art is cropped; the white frame blends with the
-     images' white backgrounds, so off-ratio art still looks full. */
-  object-fit: contain;
+  /* Square mockups fill the square frame edge-to-edge with no whitespace. */
+  object-fit: cover;
   object-position: center;
   display: block;
   transition: transform 0.5s ease;
@@ -356,7 +375,7 @@
 }
 
 .collectionBody {
-  padding: 1.4rem 1.5rem 1.6rem;
+  padding: 1.25rem 1.25rem 1.4rem;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -366,17 +385,19 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
+  flex-wrap: wrap;
 }
 
 .collectionHead h3 {
   margin: 0;
   color: var(--heading);
+  font-size: 1.09rem;
 }
 
 .collectionCount {
-  font-size: 0.76rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: var(--blue);
   background: var(--blue-50);
@@ -386,17 +407,10 @@
   white-space: nowrap;
 }
 
-.collectionBody p {
-  color: var(--muted);
-  font-size: 0.92rem;
-  margin: 0 0 1.25rem;
-  flex: 1;
-}
-
 .collectionLink {
   color: var(--blue);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.84rem;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -434,7 +448,7 @@
 
 .shopDesc {
   color: var(--muted);
-  font-size: 0.92rem;
+  font-size: 0.86rem;
   max-width: 560px;
   margin: 0;
 }
@@ -442,7 +456,7 @@
 .viewAll {
   color: var(--blue);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.84rem;
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
@@ -481,7 +495,7 @@
   cursor: pointer;
   padding: 1.15rem 1.4rem;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.94rem;
   color: var(--heading);
   font-family: var(--font-inter);
   list-style: none;
@@ -497,7 +511,7 @@
 
 .faqItem summary::after {
   content: '+';
-  font-size: 1.5rem;
+  font-size: 1.44rem;
   font-weight: 400;
   line-height: 1;
   color: var(--blue);
@@ -515,7 +529,7 @@
 .faqAnswer {
   padding: 0 1.4rem 1.25rem;
   color: var(--muted);
-  font-size: 0.94rem;
+  font-size: 0.88rem;
   line-height: 1.7;
 }
 
@@ -576,4 +590,183 @@
   .sectionHead {
     align-items: flex-start;
   }
+}
+
+/* Corporate gifting range — hero Doc Kit (left) + trio of cards (right) */
+.giftLayout {
+  display: grid;
+  grid-template-columns: minmax(300px, 1fr) 2fr;
+  gap: 1.75rem;
+  align-items: stretch;
+}
+
+/* Hero piece — just the Doc Kit image, no copy. Its natural height sets the
+   row height; the trio column stretches to match it. */
+/* Doc Kit drives the row height; its image shows in full, untouched. */
+.giftMain {
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+/* Wrapper that lets the hover image sit on top of the base Doc Kit image.
+   The base image (in normal flow) drives the height; the hover overlay is
+   absolutely positioned to match it. */
+.giftMainImgWrap {
+  position: relative;
+  display: block;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Lift the Doc Kit hero on hover so it reads as clickable. */
+.giftMainImgWrap:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.16);
+}
+
+.giftMainImg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: var(--border-radius);
+}
+
+/* Overlay hover image — fades in on hover. Uses contain (not cover) so the
+   whole image is visible and never cropped, fitting inside the base image's
+   box. The base/non-hover images are untouched. */
+.giftHoverImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.giftMainImgWrap:hover .giftHoverImg,
+.giftCardImgWrap:hover .giftHoverImg {
+  opacity: 1;
+}
+
+/* Doc Kit hover image fills its whole frame (no empty bands) instead of
+   being letterboxed like the smaller cards. */
+.giftMainImgWrap .giftHoverImg {
+  object-fit: cover;
+}
+
+/* Trio of supporting gift cards — each fills the full row height so image +
+   short caption together equal the Doc Kit height. */
+.giftCards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  /* Single row that fills the stretched container, so each card matches the
+     Doc Kit height and its image shrinks to fit above the caption. */
+  grid-auto-rows: 1fr;
+  gap: 1.5rem;
+}
+
+/* No card chrome — just the image, with the caption sitting separately below.
+   Each card fills the full row height, so the image shrinks to fit and the
+   image + caption together line up with the Doc Kit height. */
+/* The whole card (image + caption) is a clickable link to the product page. */
+.giftCardLink {
+  display: block;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Lift the image on hover so the card reads as clickable. The caption stays
+   put; only the image wrap moves, keeping the row heights aligned. */
+.giftCardLink:hover .giftCardImgWrap {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.16);
+}
+
+.giftCardLink:hover h4 {
+  color: var(--blue-hover);
+}
+
+.giftCard {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  height: 100%;
+}
+
+.giftCardImgWrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: var(--border-radius);
+}
+
+.giftCardImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.giftCardBody {
+  padding: 0.85rem 0.15rem 0;
+}
+
+.giftCardBody h4 {
+  margin: 0 0 0.4rem;
+  color: var(--heading);
+  font-family: var(--font-inter);
+  font-size: 0.99rem;
+}
+
+.giftCardDesc {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Pill-shaped Explore More button */
+.giftBtn {
+  border-radius: 999px;
+}
+
+/* Tablet: hero on top, trio below. No shared row height now, so give the
+   card images a fixed ratio instead of stretching them to fill. */
+@media (max-width: 900px) {
+  .giftLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .giftCardImgWrap {
+    flex: none;
+    aspect-ratio: 3 / 4;
+  }
+}
+
+/* Mobile: trio stacks */
+@media (max-width: 600px) {
+  .giftCards {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 2027 Collection poster — spans almost the full viewport width, never cropped */
+.posterWrap {
+  width: 96vw;
+  max-width: 1800px;
+  margin-inline: auto;
+}
+.posterImg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
 }

@@ -1,0 +1,63 @@
+/* Centered, single-line row of category tags sitting under the heading. */
+.tagRow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  max-width: 900px;
+  margin: 0 auto 1.5rem;
+  padding: 0 0.25rem;
+}
+
+.tag {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1.2rem;
+  background: var(--blue-50);
+  color: var(--blue);
+  border: 1px solid var(--blue-100);
+  border-radius: 9999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.tag:hover {
+  background: var(--blue-100);
+  color: var(--blue);
+  transform: translateY(-1px);
+}
+
+.tag.active {
+  background: var(--blue);
+  color: #ffffff;
+  border-color: var(--blue);
+  box-shadow: 0 6px 16px rgba(6, 41, 110, 0.25);
+}
+
+.tag.active:hover {
+  background: var(--blue-hover);
+  color: #ffffff;
+  border-color: var(--blue-hover);
+}
+
+@media (max-width: 600px) {
+  .tagRow {
+    /* Keep one neat scrollable line on small screens instead of wrapping awkwardly */
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0.4rem;
+  }
+  .tagRow::-webkit-scrollbar {
+    display: none;
+  }
+}

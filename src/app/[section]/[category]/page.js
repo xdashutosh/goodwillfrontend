@@ -3,16 +3,12 @@ import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import ProductCatalog from '@/components/products/ProductCatalog';
 import CatalogSkeleton from '@/components/products/CatalogSkeleton';
-import { API_BASE } from '@/lib/api';
+import CategoryContent from '@/components/products/CategoryContent';
+import { API_BASE, fetchJson } from '@/lib/api';
 
-// Fetch category data
+// Fetch category data (retries transient backend failures; null on 404)
 async function getCategory(slug) {
-  const res = await fetch(`${API_BASE}/api/categories/${slug}`, { next: { revalidate: 60 } });
-  if (!res.ok) {
-    if (res.status === 404) return null;
-    throw new Error('Failed to fetch category');
-  }
-  return res.json();
+  return fetchJson(`/api/categories/${slug}`);
 }
 
 // Pre-render every category at build time (falls back to on-demand if the API is down)
@@ -72,8 +68,13 @@ export default async function CategoryPage({ params }) {
         </nav>
       </div>
 
+      <CategoryContent category={category} />
+
       <section className="section-padding">
         <div className="container">
+          <div className="text-center" style={{ marginBottom: '2.5rem' }}>
+            <h2>Browse {category.name}</h2>
+          </div>
           <Suspense fallback={<CatalogSkeleton />}>
             <ProductCatalog lockedSection={category.section_slug} lockedCategory={category.slug} basePath={`/${category.section_slug}/${category.slug}`} />
           </Suspense>

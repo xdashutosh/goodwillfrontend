@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import Link from 'next/link';
 import { Facebook, Instagram, Twitter, Linkedin, Whatsapp } from '@/components/ui/SocialIcons';
 
@@ -83,15 +83,15 @@ export default function Footer({ socials = {}, contact = {} }) {
         .footer {
           background-color: var(--bg-alt);
           border-top: 1px solid var(--border);
-          padding: 4rem 0 0;
+          padding: 2.5rem 0 0;
           margin-top: auto;
         }
 
         .footer-grid {
           display: grid;
           grid-template-columns: 1fr;
-          gap: 3rem;
-          margin-bottom: 4rem;
+          gap: 2rem;
+          margin-bottom: 2rem;
         }
 
         @media (min-width: 768px) {
@@ -120,14 +120,14 @@ export default function Footer({ socials = {}, contact = {} }) {
         .footer-desc {
           color: var(--muted);
           max-width: 320px;
-          margin-top: 1rem;
-          font-size: 0.95rem;
+          margin-top: 0.75rem;
+          font-size: 0.89rem;
         }
 
         .footer-social {
           display: flex;
           gap: 0.6rem;
-          margin-top: 1.5rem;
+          margin-top: 1rem;
         }
 
         .social-btn {
@@ -148,14 +148,14 @@ export default function Footer({ socials = {}, contact = {} }) {
           border-color: var(--blue);
           color: #ffffff;
           transform: translateY(-2px);
-          box-shadow: 0 6px 16px rgba(43, 76, 219, 0.25);
+          box-shadow: 0 6px 16px rgba(6, 41, 110, 0.25);
         }
 
         .footer h3 {
           color: var(--gold-light);
           font-family: var(--font-inter);
-          font-size: 1.1rem;
-          margin-bottom: 1.5rem;
+          font-size: 1.04rem;
+          margin-bottom: 1rem;
         }
 
         .footer-links ul {
@@ -163,12 +163,12 @@ export default function Footer({ socials = {}, contact = {} }) {
         }
 
         .footer-links li {
-          margin-bottom: 0.75rem;
+          margin-bottom: 0.55rem;
         }
 
         .footer-links a {
           color: var(--text-gray);
-          font-size: 0.95rem;
+          font-size: 0.89rem;
         }
 
         .footer-links a:hover {
@@ -178,7 +178,7 @@ export default function Footer({ socials = {}, contact = {} }) {
 
         .footer-contact p {
           color: var(--text-gray);
-          font-size: 0.95rem;
+          font-size: 0.89rem;
           margin-bottom: 0.5rem;
         }
 
@@ -191,15 +191,15 @@ export default function Footer({ socials = {}, contact = {} }) {
         }
 
         .mt-4 {
-          margin-top: 1.5rem;
+          margin-top: 1rem;
         }
 
         .footer-bottom {
           border-top: 1px solid var(--border);
-          padding: 1.5rem 0;
+          padding: 1rem 0;
           text-align: center;
           color: var(--muted);
-          font-size: 0.85rem;
+          font-size: 0.79rem;
         }
       `}</style>
     </footer>

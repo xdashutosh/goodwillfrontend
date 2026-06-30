@@ -4,14 +4,14 @@
   left: 0;
   right: 0;
   z-index: 1000;
-  background: #ffffff;
+  background: #f5f5f6e7;
 }
 
 /* Tier 1 — utility bar */
 .topbar {
   background: var(--brand-navy);
-  color: #fff;
-  font-size: 0.8rem;
+  color: #ffffff;
+  font-size: 0.74rem;
   max-height: 52px;
   overflow: hidden;
   transition: max-height 0.35s ease, opacity 0.3s ease;
@@ -63,7 +63,7 @@
 
 /* Tier 2 — main nav */
 .mainnav {
-  background: #ffffff;
+  background: #f5f5f6;
   border-bottom: 1px solid transparent;
   transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
@@ -75,24 +75,24 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.8rem 0;
+  padding: 0.5rem 0;
   transition: padding 0.3s ease;
 }
 .header.scrolled .mainnavInner {
-  padding: 0.55rem 0;
+  padding: 0.35rem 0;
 }
 .logo {
   display: flex;
   align-items: center;
 }
 .logoImg {
-  height: 46px;
+  height: 40px;
   width: auto;
   display: block;
   transition: height 0.3s ease;
 }
 .header.scrolled .logoImg {
-  height: 40px;
+  height: 34px;
 }
 
 .desktopNav {
@@ -107,7 +107,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.94rem;
+  font-size: 0.88rem;
   font-weight: 500;
   color: var(--heading);
   padding: 0.5rem 0;
@@ -175,7 +175,7 @@
   display: block;
   padding: 0.55rem 0.8rem;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 0.84rem;
   color: var(--heading);
   transition: background 0.18s ease, color 0.18s ease;
 }
@@ -189,7 +189,7 @@
   padding: 0.65rem 0.8rem 0.4rem;
   border-top: 1px solid var(--border);
   color: var(--blue);
-  font-size: 0.85rem;
+  font-size: 0.79rem;
   font-weight: 600;
 }
 .ddAll:hover {
@@ -198,8 +198,19 @@
 
 .navBtn {
   padding: 0.5rem 1.2rem;
-  font-size: 0.9rem;
+  font-size: 0.84rem;
   margin-left: 0.4rem;
+  border-radius: 1200px;
+}
+/* Doubled class to reliably override the shared global .btn-primary colours */
+.navBtn.navBtn {
+  background-color: #06296e;
+  color: #ffffff;
+  
+}
+.navBtn.navBtn:hover {
+  background-color: #041d4f;
+  color: #ffffff;
 }
 
 .mobileMenuBtn {
@@ -248,7 +259,7 @@
   border: none;
   border-bottom: 1px solid var(--border);
   font-family: var(--font-inter);
-  font-size: 1rem;
+  font-size: 0.94rem;
   font-weight: 600;
   color: var(--heading);
   padding: 0.9rem 0.25rem;
@@ -273,7 +284,7 @@
 .mSublink {
   padding: 0.55rem 0.25rem;
   color: var(--muted);
-  font-size: 0.92rem;
+  font-size: 0.86rem;
 }
 .mSublink.strong {
   color: var(--blue);
@@ -282,6 +293,14 @@
 .mCta {
   margin-top: 1.1rem;
   text-align: center;
+}
+.mCta.mCta {
+  background-color: #4b84f5;
+  color: #ffffff;
+}
+.mCta.mCta:hover {
+  background-color: #3a6ee8;
+  color: #ffffff;
 }
 .mContact {
   display: flex;
@@ -296,7 +315,7 @@
   align-items: center;
   gap: 0.5rem;
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.84rem;
 }
 
 @media (max-width: 991px) {

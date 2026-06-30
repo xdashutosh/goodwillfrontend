@@ -137,7 +137,7 @@ export default function ProductGallery({ images, productName }) {
           align-items: center;
           justify-content: center;
           color: var(--text-gray-dark);
-          font-size: 1.2rem;
+          font-size: 1.14rem;
         }
 
         .main-image-wrap {
@@ -166,7 +166,7 @@ export default function ProductGallery({ images, productName }) {
           position: absolute;
           bottom: 0.75rem;
           right: 0.75rem;
-          font-size: 0.7rem;
+          font-size: 0.64rem;
           color: #ffffff;
           background: rgba(22, 35, 92, 0.7);
           padding: 0.2rem 0.6rem;
@@ -191,7 +191,7 @@ export default function ProductGallery({ images, productName }) {
           border: 2px solid var(--border);
           background: #ffffff;
           color: var(--text);
-          font-size: 0.75rem;
+          font-size: 0.69rem;
           cursor: pointer;
           transition: var(--transition);
         }

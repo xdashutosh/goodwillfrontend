@@ -1,17 +1,21 @@
 :root {
+  /* Body/UI font — Avenir Next (proprietary, not loaded via next/font/google).
+     Falls back to Avenir and the platform sans-serif where unavailable. */
+  --font-inter: 'Avenir Next', 'Avenir', 'Segoe UI', system-ui, -apple-system, sans-serif;
+
   /* Brand palette (derived from the Plan.A.Day / Goodwill Printers logos) */
   --brand-blue: #203090;   /* deep indigo from the logos */
   --brand-navy: #16235c;   /* darker navy for headings */
-  --blue: #2b4cdb;         /* primary interactive blue */
-  --blue-hover: #1e3bb8;
+  --blue: #06296e;         /* primary interactive blue (matches the Enquire Now button) */
+  --blue-hover: #041d4f;
   --blue-50: #eef2ff;
   --blue-100: #e0e7ff;
 
   /* Neutrals (white / grey) */
-  --bg: #ffffff;
+  --bg: #f6f7f9;           /* very light grey page background — white cards lift off it */
   --bg-alt: #f4f7fc;       /* light blue-grey for alternating sections */
   --surface: #ffffff;
-  --heading: #16235c;
+  --heading: #06296e;     /* headings/titles use the same blue as the Enquire Now button */
   --text: #334155;
   --muted: #64748b;
   --border: #e6e9f2;
@@ -22,14 +26,14 @@
 
   --border-radius: 14px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  /* Two-tier header: utility bar (~32px) + main nav (~76px) */
-  --header-height: 108px;
+  /* Two-tier header: utility bar (~34px) + main nav (~57px) */
+  --header-height: 91px;
 
   /* Legacy aliases — keep older markup/inline styles consistent with the new theme */
   --primary-dark: #ffffff;
   --primary-navy: #f4f7fc;
-  --gold-accent: #2b4cdb;
-  --gold-light: #16235c;
+  --gold-accent: #06296e;
+  --gold-light: #06296e;
   --text-white: #1f2937;
   --text-gray: #475569;
   --text-gray-dark: #94a3b8;
@@ -66,8 +70,8 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-playfair), serif;
-  font-weight: 700;
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-weight: 600;
   color: var(--heading);
   margin-bottom: 1rem;
   letter-spacing: -0.01em;
@@ -128,7 +132,7 @@ main {
   font-family: var(--font-inter);
   border: none;
   cursor: pointer;
-  box-shadow: 0 6px 16px rgba(43, 76, 219, 0.25);
+  box-shadow: 0 6px 16px rgba(6, 41, 110, 0.25);
   transition: var(--transition);
 }
 
@@ -136,7 +140,7 @@ main {
   background-color: var(--blue-hover);
   transform: translateY(-2px);
   color: #ffffff;
-  box-shadow: 0 10px 22px rgba(43, 76, 219, 0.32);
+  box-shadow: 0 10px 22px rgba(6, 41, 110, 0.32);
 }
 
 .btn-secondary {
@@ -159,7 +163,7 @@ main {
 }
 
 .section-padding {
-  padding: 5rem 0;
+  padding: 3rem 0;
 }
 
 .text-center {
@@ -225,7 +229,7 @@ main {
   overflow: hidden;
   padding: 2rem;
   background:
-    radial-gradient(circle at 20% 20%, rgba(43, 76, 219, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 20% 20%, rgba(6, 41, 110, 0.08) 0%, transparent 45%),
     radial-gradient(circle at 80% 0%, rgba(32, 48, 144, 0.07) 0%, transparent 40%),
     linear-gradient(180deg, #ffffff 0%, var(--bg-alt) 100%);
 }
@@ -300,7 +304,7 @@ input:focus, textarea:focus, select:focus {
   outline: none;
   border-color: var(--blue);
   background-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(43, 76, 219, 0.15);
+  box-shadow: 0 0 0 3px rgba(6, 41, 110, 0.15);
 }
 
 label {
@@ -338,7 +342,7 @@ label {
   color: #cbd5e1;
 }
 .breadcrumbs .current {
-  color: var(--brand-navy);
+  color: var(--blue);
   font-weight: 600;
 }
 

@@ -1,3 +1,15 @@
+/* Full-width designed header banner shown at the top of a section page. */
+.headerBanner {
+  width: 100%;
+  line-height: 0;
+}
+
+.headerBannerImg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
 .categoryCard {
   display: block;
   padding: 2rem;

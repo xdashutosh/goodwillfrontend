@@ -1,8 +1,19 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Award, Factory, Palette, Gem, ArrowRight } from 'lucide-react';
+import poster2027 from '@/assets/2027collection.png';
+import docKit from '@/assets/Doc.kit.png';
+import astra from '@/assets/astra.png';
+import fashion from '@/assets/fashion.png';
+import guest from '@/assets/guest.png';
+import docKitHover from '@/assets/on hover/Doc kit.png';
+import astraHover from '@/assets/on hover/astra.png';
+import fashionHover from '@/assets/on hover/fashion.png';
+import guestHover from '@/assets/on hover/guest.png';
 import { API_BASE } from '@/lib/api';
 import Reveal from '@/components/ui/Reveal';
 import BannerCarousel from '@/components/ui/BannerCarousel';
+import HeroCarousel from '@/components/ui/HeroCarousel';
 import styles from './page.module.css';
 
 const USPS = [
@@ -31,11 +42,40 @@ const SHOWCASE_SLUGS = ['diaries', 'notebooks', 'organizers', 'corporate-gifts']
 
 // Collection artwork shown on the "Our Collections" cards
 const SECTION_IMAGES = {
-  diaries: '/collections/diaries.jpg',
-  notebooks: '/collections/notebooks.jpg',
-  organizers: '/collections/organizers.jpg',
-  'corporate-gifts': '/collections/corporate-gifts.jpg',
+  diaries: '/collections/diaries.png',
+  notebooks: '/collections/notebooks.png',
+  organizers: '/collections/organizers.png',
+  'corporate-gifts': '/collections/corporate-gifts.png',
 };
+
+// Corporate gifting range featured below the 2027 poster. The Doc Kit is the
+// hero piece (large image, far left); the remaining three sit as a trio.
+const GIFT_ITEMS = [
+  {
+    image: astra,
+    hoverImage: astraHover,
+    name: 'Astra',
+    slug: 'astra-corporate-gifts',
+    description:
+      'A slimline leatherette card and document holder with smart slots for cards, cash and travel papers.',
+  },
+  {
+    image: fashion,
+    hoverImage: fashionHover,
+    name: 'Fashion Book',
+    slug: 'fashion-corporate-gifts',
+    description:
+      'A zip-around organiser pairing a phone pocket, card slots and a notepad — a sleek, premium gift.',
+  },
+  {
+    image: guest,
+    hoverImage: guestHover,
+    name: 'Guest Book',
+    slug: 'guest-book-corporate-gifts',
+    description:
+      'A debossed faux-leather guest book that adds a premium touch to weddings, launches and corporate events.',
+  },
+];
 
 const FAQS = [
   {
@@ -155,26 +195,9 @@ export default async function Home() {
   const banners = Array.isArray(settings.banners) ? settings.banners.filter((b) => b && b.image_url) : [];
 
   return (
-    <>
+    <div className={styles.home}>
       {/* Hero */}
-      {banners.length > 0 ? (
-        <BannerCarousel banners={banners} />
-      ) : (
-        <section className="hero">
-          <div className="container">
-            <h1>{heroTitle}</h1>
-            <p>{heroSubtitle}</p>
-            <div className="cta-group">
-              <Link href="/products" className="btn-primary" style={{ marginRight: '1rem' }}>
-                Explore Collection
-              </Link>
-              <Link href="/contact" className="btn-secondary">
-                Request Customization
-              </Link>
-            </div>
-          </div>
-        </section>
-      )}
+      <HeroCarousel />
 
       {/* Collections overview */}
       <section className="section-padding" style={{ backgroundColor: 'var(--bg-alt)' }}>
@@ -205,7 +228,6 @@ export default async function Home() {
                         <span className={styles.collectionCount}>{section.category_count} categories</span>
                       )}
                     </div>
-                    <p>{section.description}</p>
                     <span className={styles.collectionLink}>
                       Explore {section.name} <ArrowRight size={15} style={{ verticalAlign: 'middle' }} />
                     </span>
@@ -213,6 +235,77 @@ export default async function Home() {
                 </Link>
               </Reveal>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 2027 Collection poster */}
+      <section className="section-padding">
+        <div className="container">
+          <Reveal>
+            <SectionHeading
+              eyebrow="New Arrivals"
+              title="The 2027 Collection"
+              subtitle="A fresh line-up of premium diaries crafted to plan your year in style — thoughtfully designed, beautifully finished, and made for every occasion."
+            />
+          </Reveal>
+        </div>
+        <div className={styles.posterWrap}>
+          <Reveal>
+            <Image
+              src={poster2027}
+              alt="Goodwill Printers — 2027 Collection"
+              className={styles.posterImg}
+              sizes="96vw"
+              priority={false}
+            />
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Corporate gifting range */}
+      <section className="section-padding" style={{ backgroundColor: 'var(--bg-alt)', paddingTop: '2.5rem' }}>
+        <div className="container">
+          <Reveal>
+            <SectionHeading
+              eyebrow="Gifting"
+              title="Corporate Gifts"
+              subtitle="Gifts that carry your brand with grace — premium organisers, holders and keepsakes that leave a lasting impression long after they're handed over."
+            />
+          </Reveal>
+
+          <div className={styles.giftLayout}>
+            <Reveal className={styles.giftMain}>
+              <Link href="/product/doc-kit-corporate-gifts" className={styles.giftMainImgWrap} aria-label="Doc Kit — view product">
+                <Image src={docKit} alt="Doc Kit — secure travel document organiser" className={styles.giftMainImg} sizes="(max-width: 900px) 90vw, 38vw" />
+                <Image src={docKitHover} alt="" aria-hidden className={`${styles.giftMainImg} ${styles.giftHoverImg}`} sizes="(max-width: 900px) 90vw, 38vw" />
+              </Link>
+            </Reveal>
+
+            <div className={styles.giftCards}>
+              {GIFT_ITEMS.map((item, i) => (
+                <Reveal key={item.name} delay={i * 0.08}>
+                  <Link href={`/product/${item.slug}`} className={styles.giftCardLink} aria-label={`${item.name} — view product`}>
+                    <figure className={styles.giftCard}>
+                      <div className={styles.giftCardImgWrap}>
+                        <Image src={item.image} alt={`${item.name} — corporate gift`} className={styles.giftCardImg} sizes="(max-width: 900px) 45vw, 20vw" />
+                        <Image src={item.hoverImage} alt="" aria-hidden className={`${styles.giftCardImg} ${styles.giftHoverImg}`} sizes="(max-width: 900px) 45vw, 20vw" />
+                      </div>
+                      <figcaption className={styles.giftCardBody}>
+                        <h4>{item.name}</h4>
+                        <p className={styles.giftCardDesc}>{item.description}</p>
+                      </figcaption>
+                    </figure>
+                  </Link>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+
+          <div className="text-center" style={{ marginTop: '3rem' }}>
+            <Link href="/corporate-gifts" className={`btn-primary ${styles.giftBtn}`}>
+              Explore More <ArrowRight size={16} style={{ verticalAlign: 'middle', marginLeft: '0.35rem' }} />
+            </Link>
           </div>
         </div>
       </section>
@@ -350,6 +443,6 @@ export default async function Home() {
           </Reveal>
         </div>
       </section>
-    </>
+    </div>
   );
 }

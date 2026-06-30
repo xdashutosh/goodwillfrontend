@@ -1,16 +1,12 @@
 import Link from 'next/link';
 import ProductGallery from '@/components/products/ProductGallery';
-import { API_BASE, WHATSAPP_NUMBER } from '@/lib/api';
+import ProductContent from '@/components/products/ProductContent';
+import { API_BASE, WHATSAPP_NUMBER, fetchJson } from '@/lib/api';
 import styles from './product.module.css';
 
-// Fetch product data
+// Fetch product data (retries transient backend failures; null on 404)
 async function getProduct(slug) {
-  const res = await fetch(`${API_BASE}/api/products/${slug}`, { next: { revalidate: 60 } });
-  if (!res.ok) {
-    if (res.status === 404) return null;
-    throw new Error('Failed to fetch product');
-  }
-  return res.json();
+  return fetchJson(`/api/products/${slug}`);
 }
 
 // Pre-render every product at build time (falls back to on-demand if the API is down)
@@ -91,7 +87,7 @@ export default async function ProductDetailPage({ params }) {
       {/* Inject JSON-LD */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
 
       <div className="container" style={{ padding: '2rem 1.5rem 0' }}>
@@ -169,6 +165,9 @@ export default async function ProductDetailPage({ params }) {
           </div>
         </div>
       </section>
+
+      {/* Rich product detail — good points, what's unique, quality, specs */}
+      <ProductContent product={product} />
 
       {/* Related Products */}
       {product.related && product.related.length > 0 && (
