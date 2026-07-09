@@ -1,7 +1,7 @@
-import { WHATSAPP_NUMBER } from '@/lib/api';
+import { WHATSAPP_NUMBER, normalizeWhatsApp } from '@/lib/api';
 
 export default function WhatsAppFab({ number }) {
-  const wa = number || WHATSAPP_NUMBER;
+  const wa = normalizeWhatsApp(number) || WHATSAPP_NUMBER;
   if (!wa) return null;
 
   const href = `https://wa.me/${wa}?text=${encodeURIComponent(

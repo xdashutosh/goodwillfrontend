@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Phone, Mail, ChevronDown, Menu, X } from 'lucide-react';
 import { Facebook, Instagram, Twitter, Linkedin, Whatsapp } from '@/components/ui/SocialIcons';
+import { normalizeWhatsApp } from '@/lib/api';
 import styles from './Header.module.css';
 
 export default function Header({ navData }) {
@@ -32,7 +33,7 @@ export default function Header({ navData }) {
   const isActive = (path) => pathname === path;
   const inSection = (slug) => pathname === `/${slug}` || pathname.startsWith(`/${slug}/`);
   const telHref = contact.phone ? `tel:${contact.phone.replace(/[^0-9+]/g, '')}` : null;
-  const waNumber = (contact.whatsapp || '').replace(/[^0-9]/g, '');
+  const waNumber = normalizeWhatsApp(contact.whatsapp);
 
   const socialLinks = [
     { Icon: Facebook, url: socials.facebook, label: 'Facebook' },

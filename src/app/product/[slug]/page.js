@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ProductGallery from '@/components/products/ProductGallery';
 import ProductContent from '@/components/products/ProductContent';
-import { API_BASE, WHATSAPP_NUMBER, fetchJson } from '@/lib/api';
+import { API_BASE, WHATSAPP_NUMBER, SITE_URL, fetchJson, normalizeWhatsApp } from '@/lib/api';
 import styles from './product.module.css';
 
 // Fetch product data (retries transient backend failures; null on 404)
@@ -73,8 +73,12 @@ export default async function ProductDetailPage({ params }) {
     },
   };
 
-  const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-    `Hi, I'm interested in "${product.name}" (${product.category_name}). Could you please share more details?`
+  // Use the admin-configured WhatsApp number (Settings), falling back to the default.
+  const settings = await fetchJson('/api/settings').catch(() => null);
+  const waNumber = normalizeWhatsApp(settings?.whatsapp_number) || WHATSAPP_NUMBER;
+  const productUrl = `${SITE_URL}/product/${product.slug}`;
+  const whatsappHref = `https://wa.me/${waNumber}?text=${encodeURIComponent(
+    `Hi, I'm interested in "${product.name}" (${product.category_name}).\n\n${productUrl}\n\nCould you please share more details?`
   )}`;
 
   // A few key facts for the buy box — pulled from the spec table with meta fallbacks.

@@ -102,7 +102,7 @@ export default async function RootLayout({ children }) {
         <Header navData={navData} />
         <main>{children}</main>
         <Footer socials={navData.socials} contact={navData.contact} />
-        <WhatsAppFab />
+        <WhatsAppFab number={navData.contact.whatsapp} />
       </body>
     </html>
   );

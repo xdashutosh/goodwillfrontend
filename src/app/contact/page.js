@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import Image from 'next/image';
 import { Mail, Phone, MapPin, MessageCircle } from 'lucide-react';
-import { API_BASE, WHATSAPP_NUMBER } from '@/lib/api';
+import { API_BASE, WHATSAPP_NUMBER, normalizeWhatsApp } from '@/lib/api';
 import contactBg from '@/assets/contactus backgroung.png';
 import ContactForm from './ContactForm';
 import styles from './contact.module.css';
@@ -27,7 +27,7 @@ export default async function Contact() {
   const email = settings.contact_email || 'tanujdhawangp@gmail.com';
   const phone = settings.contact_phone || '';
   const address = settings.contact_address || 'Goodwill Printers\nNew Delhi, India';
-  const whatsapp = settings.whatsapp_number || WHATSAPP_NUMBER;
+  const whatsapp = normalizeWhatsApp(settings.whatsapp_number) || WHATSAPP_NUMBER;
   const whatsappHref = `https://wa.me/${whatsapp}?text=${encodeURIComponent('Hi Goodwill Printers, I would like to enquire about your products.')}`;
 
   return (

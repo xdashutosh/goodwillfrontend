@@ -6,7 +6,20 @@ export const API_BASE =
 
 // Public WhatsApp number (digits only, with country code) for enquiry buttons.
 export const WHATSAPP_NUMBER =
-  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '919810000000';
+  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '919810350320';
+
+// Make a number wa.me-ready: digits only, with country code. A bare 10-digit
+// number is assumed to be Indian (+91). Returns '' for empty input.
+export function normalizeWhatsApp(num) {
+  const digits = String(num || '').replace(/[^0-9]/g, '');
+  if (!digits) return '';
+  return digits.length === 10 ? `91${digits}` : digits;
+}
+
+// Public URL of the storefront (used for canonical links and share/WhatsApp links).
+export const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL || 'https://www.plan-a-day.com'
+).replace(/\/$/, '');
 
 export const apiUrl = (path) => `${API_BASE}${path}`;
 

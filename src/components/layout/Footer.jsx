@@ -1,11 +1,12 @@
 ﻿'use client';
 import Link from 'next/link';
 import { Facebook, Instagram, Twitter, Linkedin, Whatsapp } from '@/components/ui/SocialIcons';
+import { normalizeWhatsApp } from '@/lib/api';
 
 export default function Footer({ socials = {}, contact = {} }) {
   const currentYear = new Date().getFullYear();
   const email = contact.email || 'tanujdhawangp@gmail.com';
-  const waNumber = (contact.whatsapp || '').replace(/[^0-9]/g, '');
+  const waNumber = normalizeWhatsApp(contact.whatsapp);
   const socialLinks = [
     { Icon: Facebook, url: socials.facebook, label: 'Facebook' },
     { Icon: Instagram, url: socials.instagram, label: 'Instagram' },
