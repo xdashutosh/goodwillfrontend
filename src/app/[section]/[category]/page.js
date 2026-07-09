@@ -50,7 +50,7 @@ export default async function CategoryPage({ params }) {
 
   return (
     <>
-      <section className="hero" style={{ minHeight: '35vh', backgroundImage: category.image_url ? `linear-gradient(rgba(10, 22, 40, 0.7), rgba(10, 22, 40, 0.9)), url(${category.image_url})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+      <section className="hero" style={{ minHeight: '32vh', maxHeight: '360px', backgroundImage: category.image_url ? `linear-gradient(rgba(10, 22, 40, 0.7), rgba(10, 22, 40, 0.9)), url(${category.image_url})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="container">
           <h1>{category.name}</h1>
           <p>{category.description}</p>
@@ -58,7 +58,7 @@ export default async function CategoryPage({ params }) {
       </section>
 
       {/* Breadcrumbs */}
-      <div className="container" style={{ padding: '2rem 1.5rem 0' }}>
+      <div className="container" style={{ padding: '1.5rem 1.5rem 0' }}>
         <nav className="breadcrumbs" aria-label="breadcrumb">
           <ol>
             <li><Link href="/">Home</Link></li>
@@ -68,18 +68,17 @@ export default async function CategoryPage({ params }) {
         </nav>
       </div>
 
-      <CategoryContent category={category} />
-
-      <section className="section-padding">
+      {/* Products first — what the visitor came for */}
+      <section className="section-padding" style={{ paddingTop: '1.75rem' }}>
         <div className="container">
-          <div className="text-center" style={{ marginBottom: '2.5rem' }}>
-            <h2>Browse {category.name}</h2>
-          </div>
           <Suspense fallback={<CatalogSkeleton />}>
             <ProductCatalog lockedSection={category.section_slug} lockedCategory={category.slug} basePath={`/${category.section_slug}/${category.slug}`} />
           </Suspense>
         </div>
       </section>
+
+      {/* About this category — details below the products */}
+      <CategoryContent category={category} />
     </>
   );
 }

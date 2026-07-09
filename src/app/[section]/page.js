@@ -67,10 +67,11 @@ export default async function SectionPage({ params }) {
     <>
       {headerImage ? (
         <div className={styles.headerBanner}>
+          <div className={styles.headerBannerBg} style={{ backgroundImage: `url(${headerImage.src})` }} aria-hidden="true" />
           <Image src={headerImage} alt={section.name} priority sizes="100vw" className={styles.headerBannerImg} />
         </div>
       ) : (
-        <section className="hero" style={{ minHeight: '40vh', backgroundImage: section.image_url ? `linear-gradient(rgba(10, 22, 40, 0.7), rgba(10, 22, 40, 0.9)), url(${section.image_url})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <section className="hero" style={{ minHeight: '50vh', maxHeight: '560px', backgroundImage: section.image_url ? `linear-gradient(rgba(10, 22, 40, 0.7), rgba(10, 22, 40, 0.9)), url(${section.image_url})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
           <div className="container">
             <h1>{section.name}</h1>
             <p>{section.description}</p>

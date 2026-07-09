@@ -19,7 +19,7 @@ export default function BannerCarousel({ banners }) {
 
   if (n === 0) return null;
 
-  const b = list[index];
+  const b = list[index] || list[0];
   const inner = (
     <div className="banner-frame">
       {/* Blurred, dimmed copy of the banner fills the stage so smaller / off-ratio

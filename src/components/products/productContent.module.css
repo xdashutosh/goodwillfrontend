@@ -7,6 +7,21 @@
   margin-bottom: 1.75rem;
 }
 
+.overview {
+  margin-bottom: 1.9rem;
+}
+
+.overview p {
+  color: var(--text);
+  line-height: 1.75;
+  margin: 0 0 1rem;
+  max-width: 68ch;
+}
+
+.overview p:last-child {
+  margin-bottom: 0;
+}
+
 .grid {
   display: grid;
   grid-template-columns: 1.7fr 1fr;
@@ -136,4 +151,81 @@
   font-weight: 600;
   font-size: 0.79rem;
   text-align: right;
+}
+
+/* ---- compact "card" variant: rendered inside the product info card ---- */
+.cardWrap {
+  margin-top: 1.4rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--border);
+}
+
+.cardBlock {
+  margin-bottom: 1.4rem;
+}
+
+.cardBlock:last-child {
+  margin-bottom: 0;
+}
+
+.cardHeading {
+  color: var(--heading);
+  font-size: 0.98rem;
+  margin-bottom: 0.7rem;
+}
+
+.cardPoints {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cardPoints li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  color: var(--text);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.cardSpecs {
+  margin: 0;
+}
+
+.cardSpecRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.cardSpecRow:last-child {
+  border-bottom: none;
+}
+
+.cardSpecRow dt {
+  color: var(--muted);
+  font-size: 0.82rem;
+  flex-shrink: 0;
+  max-width: 45%;
+}
+
+.cardSpecRow dd {
+  margin: 0;
+  color: var(--heading);
+  font-weight: 600;
+  font-size: 0.82rem;
+  text-align: right;
+}
+
+.cardText {
+  color: var(--text);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  margin: 0;
 }

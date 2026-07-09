@@ -233,7 +233,7 @@ export default function ProductCatalog({ lockedSection = '', lockedCategory = ''
                 <div className="product-info">
                   <div className="product-category">{product.section_name} • {product.category_name}</div>
                   <h3 className="product-title">{product.name}</h3>
-                  {view === 'list' && <p className="product-desc">{product.description?.substring(0, 150)}...</p>}
+                  {view === 'list' && <p className="product-desc">{(typeof product.description === 'string' ? product.description : '').substring(0, 150)}...</p>}
 
                   <span className="product-link">View Details<span className="arrow" aria-hidden="true"> →</span></span>
                 </div>

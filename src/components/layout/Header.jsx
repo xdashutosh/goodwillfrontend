@@ -85,17 +85,17 @@ export default function Header({ navData }) {
             <Link href="/" className={`${styles.navLink} ${isActive('/') ? styles.active : ''}`}>Home</Link>
 
             {sections.map((s) => (
-              <div key={s.slug} className={`${styles.navItem} ${s.categories.length ? styles.hasDropdown : ''}`}>
+              <div key={s.slug} className={`${styles.navItem} ${(s.categories || []).length ? styles.hasDropdown : ''}`}>
                 <Link href={`/${s.slug}`} className={`${styles.navLink} ${inSection(s.slug) ? styles.active : ''}`}>
                   {s.name}
-                  {s.categories.length > 0 && <ChevronDown size={14} className={styles.caret} />}
+                  {(s.categories || []).length > 0 && <ChevronDown size={14} className={styles.caret} />}
                 </Link>
 
-                {s.categories.length > 0 && (
+                {(s.categories || []).length > 0 && (
                   <div className={styles.dropdown}>
                     <div className={styles.dropdownCard}>
                       <div className={styles.dropdownGrid}>
-                        {s.categories.map((c) => (
+                        {(s.categories || []).map((c) => (
                           <Link key={c.slug} href={`/${s.slug}/${c.slug}`} className={styles.ddLink}>{c.name}</Link>
                         ))}
                       </div>
@@ -127,7 +127,7 @@ export default function Header({ navData }) {
 
         {sections.map((s) => (
           <div key={s.slug}>
-            {s.categories.length > 0 ? (
+            {(s.categories || []).length > 0 ? (
               <>
                 <button
                   className={styles.mSectionHead}
@@ -140,7 +140,7 @@ export default function Header({ navData }) {
                 {openSection === s.slug && (
                   <div className={styles.mSublist}>
                     <Link href={`/${s.slug}`} className={`${styles.mSublink} ${styles.strong}`}>All {s.name}</Link>
-                    {s.categories.map((c) => (
+                    {(s.categories || []).map((c) => (
                       <Link key={c.slug} href={`/${s.slug}/${c.slug}`} className={styles.mSublink}>{c.name}</Link>
                     ))}
                   </div>

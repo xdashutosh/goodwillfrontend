@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import ProductGallery from '@/components/products/ProductGallery';
 import ProductContent from '@/components/products/ProductContent';
 import { API_BASE, WHATSAPP_NUMBER, fetchJson } from '@/lib/api';
@@ -56,13 +57,7 @@ export default async function ProductDetailPage({ params }) {
   const product = await getProduct(slug);
 
   if (!product) {
-    return (
-      <div className="container section-padding text-center">
-        <h1>Product Not Found</h1>
-        <p style={{ marginTop: '1rem', marginBottom: '2rem', color: 'var(--text-gray)' }}>The product you are looking for does not exist or has been removed.</p>
-        <Link href="/products" className="btn-primary">Back to Catalog</Link>
-      </div>
-    );
+    notFound(); // serve a real 404 (matches section/category pages) instead of a soft 200
   }
 
   // Generate JSON-LD
@@ -81,6 +76,17 @@ export default async function ProductDetailPage({ params }) {
   const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
     `Hi, I'm interested in "${product.name}" (${product.category_name}). Could you please share more details?`
   )}`;
+
+  // A few key facts for the buy box — pulled from the spec table with meta fallbacks.
+  const specs = Array.isArray(product.content?.specifications) ? product.content.specifications : [];
+  const specVal = (label) => specs.find((s) => s?.label?.toLowerCase() === label.toLowerCase())?.value;
+  const keyFacts = [
+    { label: 'Size', value: product.category_size_label || specVal('Size') },
+    { label: 'Format', value: product.category_type_label || specVal('Format') },
+    { label: 'Pages', value: specVal('Pages') },
+    { label: 'Material', value: specVal('Cover Material') },
+    { label: 'Closure', value: specVal('Closure') },
+  ].filter((f) => f.value).slice(0, 4);
 
   return (
     <>
@@ -110,35 +116,29 @@ export default async function ProductDetailPage({ params }) {
               <ProductGallery images={product.images || []} productName={product.name} />
             </div>
 
-            {/* Product Info */}
+            {/* Product Info — concise buy box */}
             <div className={`glass-card ${styles.productInfoWrap}`}>
               <div className={styles.productCategory}>{product.category_name}</div>
               <h1 className={styles.productTitle}>{product.name}</h1>
 
-              <div className={styles.metaInfo}>
-                {product.cover_style && (
-                  <div className={styles.metaItem}>
-                    <span className={styles.metaLabel}>Cover Style:</span>
-                    <span className={styles.metaValue}>{product.cover_style}</span>
-                  </div>
-                )}
-                {product.category_size_label && (
-                  <div className={styles.metaItem}>
-                    <span className={styles.metaLabel}>Size:</span>
-                    <span className={styles.metaValue}>{product.category_size_label}</span>
-                  </div>
-                )}
-                {product.category_type_label && (
-                  <div className={styles.metaItem}>
-                    <span className={styles.metaLabel}>Type:</span>
-                    <span className={styles.metaValue}>{product.category_type_label}</span>
-                  </div>
-                )}
-              </div>
+              {product.short_description && (
+                <p className={styles.lead}>{product.short_description}</p>
+              )}
+
+              {keyFacts.length > 0 && (
+                <ul className={styles.keyFacts}>
+                  {keyFacts.map((f) => (
+                    <li key={f.label}>
+                      <span className={styles.factLabel}>{f.label}</span>
+                      <span className={styles.factValue}>{f.value}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
 
               {product.available_sizes && product.available_sizes.length > 0 && (
                 <div className={styles.availableSizes}>
-                  <h3>Available Sizes for this Design:</h3>
+                  <h3>Available sizes for this design</h3>
                   <div className={styles.sizeBadges}>
                     {product.available_sizes.map((size, index) => (
                       <span key={index} className={styles.sizeBadge}>{size}</span>
@@ -146,11 +146,6 @@ export default async function ProductDetailPage({ params }) {
                   </div>
                 </div>
               )}
-
-              <div className={styles.productDescription}>
-                <h3>Description</h3>
-                <p>{product.description || product.short_description || 'No description available for this product.'}</p>
-              </div>
 
               <div className={styles.actionArea}>
                 <Link href={`/contact?product=${product.id}`} className="btn-primary" style={{ width: '100%', textAlign: 'center' }}>
@@ -166,7 +161,7 @@ export default async function ProductDetailPage({ params }) {
         </div>
       </section>
 
-      {/* Rich product detail — good points, what's unique, quality, specs */}
+      {/* Full product details — overview, highlights, specifications */}
       <ProductContent product={product} />
 
       {/* Related Products */}

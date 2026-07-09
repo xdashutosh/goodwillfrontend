@@ -1,7 +1,7 @@
 export default function Loading() {
   return (
     <>
-      <section className="hero" style={{ minHeight: '40vh' }}>
+      <section className="hero" style={{ minHeight: '50vh', maxHeight: '560px' }}>
         <div className="container">
           <div className="skeleton" style={{ height: 46, width: 300, maxWidth: '80%', margin: '0 auto 1rem' }} />
           <div className="skeleton" style={{ height: 16, width: 420, maxWidth: '90%', margin: '0 auto' }} />

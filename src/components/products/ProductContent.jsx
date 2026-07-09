@@ -1,14 +1,17 @@
 import styles from './productContent.module.css';
 
 /**
- * Renders the rich per-product detail stored on product.content (JSONB):
+ * Full product-details block shown below the gallery/buy-box.
+ * Reads product.description (top-level) + product.content (JSONB):
  *   { goodPoints[], unique, quality, specifications[{label,value}] }
- * Server-rendered. Every field is coerced defensively so a malformed/partial
- * JSONB row (e.g. hand-edited via the admin panel) can never crash the page.
+ * Server-rendered; every field is coerced defensively so malformed/partial
+ * JSONB can never crash the page.
  */
 export default function ProductContent({ product }) {
-  const content = product?.content;
-  if (!content || typeof content !== 'object') return null;
+  const content = product?.content && typeof product.content === 'object' ? product.content : {};
+
+  const description = typeof product?.description === 'string' ? product.description.trim() : '';
+  const descParas = description ? description.split(/\n\n+/).filter(Boolean) : [];
 
   const goodPoints = Array.isArray(content.goodPoints)
     ? content.goodPoints.filter((p) => typeof p === 'string' && p.trim())
@@ -22,18 +25,28 @@ export default function ProductContent({ product }) {
   const unique = typeof content.unique === 'string' ? content.unique.trim() : '';
   const quality = typeof content.quality === 'string' ? content.quality.trim() : '';
 
-  if (!goodPoints.length && !specifications.length && !unique && !quality) return null;
+  const hasMain = descParas.length || goodPoints.length || unique || quality;
+  if (!hasMain && !specifications.length) return null;
 
   return (
     <section className={`section-padding ${styles.wrap}`} aria-label={`Details for ${product.name}`}>
       <div className="container">
-        <h2 className={styles.sectionTitle}>Why choose the {product.name}</h2>
+        <h2 className={styles.sectionTitle}>Product details</h2>
 
         <div className={styles.grid}>
           <div className={styles.main}>
+            {(descParas.length > 0 || quality) && (
+              <div className={styles.overview}>
+                {descParas.map((p, i) => (
+                  <p key={i}>{p}</p>
+                ))}
+                {quality && <p>{quality}</p>}
+              </div>
+            )}
+
             {goodPoints.length > 0 && (
               <div className={styles.block}>
-                <h3>Good points</h3>
+                <h3>Highlights</h3>
                 <ul className={styles.points}>
                   {goodPoints.map((p, i) => (
                     <li key={i}>
@@ -51,13 +64,6 @@ export default function ProductContent({ product }) {
                 <p>{unique}</p>
               </div>
             )}
-
-            {quality && (
-              <div className={styles.block}>
-                <h3>Quality &amp; finish</h3>
-                <p>{quality}</p>
-              </div>
-            )}
           </div>
 
           {specifications.length > 0 && (
@@ -66,8 +72,8 @@ export default function ProductContent({ product }) {
               <dl>
                 {specifications.map((s, i) => (
                   <div key={i} className={styles.specRow}>
-                    <dt>{s?.label}</dt>
-                    <dd>{s?.value}</dd>
+                    <dt>{s.label}</dt>
+                    <dd>{s.value}</dd>
                   </div>
                 ))}
               </dl>

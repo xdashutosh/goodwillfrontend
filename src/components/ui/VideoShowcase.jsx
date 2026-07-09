@@ -4,33 +4,36 @@ import { ArrowRight } from 'lucide-react';
 import styles from './VideoShowcase.module.css';
 
 // Each clip is tagged with a collection (section), so the reel doubles as
-// navigation — tap a card to open that section's page. Videos live in
-// /public/videos; the tag thumbnail is the section's collection artwork from
-// /public/collections. Edit the pairing / order here.
+// navigation — tap a card to open that section's page. Videos are served from
+// S3 (object storage) instead of being bundled in /public; the tag thumbnail is
+// the section's collection artwork from /public/collections. Edit the pairing /
+// order here.
+const VIDEO_BASE = 'https://demo1.in-maa-1.linodeobjects.com/videos';
+
 const CARDS = [
   {
-    src: '/videos/video1.mp4',
+    src: `${VIDEO_BASE}/video1.mp4`,
     name: 'Diaries',
     tagline: 'Premium New Year diaries',
     slug: 'diaries',
     thumb: '/collections/diaries.png',
   },
   {
-    src: '/videos/video2.mp4',
+    src: `${VIDEO_BASE}/video2.mp4`,
     name: 'Notebooks',
     tagline: 'Notebooks & folders',
     slug: 'notebooks',
     thumb: '/collections/notebooks.png',
   },
   {
-    src: '/videos/video3.mp4',
+    src: `${VIDEO_BASE}/video3.mp4`,
     name: 'Organizers',
     tagline: 'Professional organizers',
     slug: 'organizers',
     thumb: '/collections/organizers.png',
   },
   {
-    src: '/videos/video4.mp4',
+    src: `${VIDEO_BASE}/video4.mp4`,
     name: 'Corporate Gifts',
     tagline: 'Premium corporate gifting',
     slug: 'corporate-gifts',
