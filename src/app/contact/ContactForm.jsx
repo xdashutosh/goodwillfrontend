@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { API_BASE } from '@/lib/api';
+import styles from './contact.module.css';
 
 export default function ContactForm() {
   const searchParams = useSearchParams();
@@ -12,6 +13,7 @@ export default function ContactForm() {
     email: '',
     phone: '',
     company: '',
+    subject: '',
     message: productId ? 'I would like to enquire about a product I viewed on your website.' : '',
   });
   const [status, setStatus] = useState({ type: '', message: '' });
@@ -38,7 +40,7 @@ export default function ContactForm() {
 
       if (res.ok) {
         setStatus({ type: 'success', message: 'Thank you! Your enquiry has been submitted. We will get back to you shortly.' });
-        setFormData({ name: '', email: '', phone: '', company: '', message: '' });
+        setFormData({ name: '', email: '', phone: '', company: '', subject: '', message: '' });
       } else {
         const data = await res.json().catch(() => ({}));
         setStatus({ type: 'error', message: data.error || 'Something went wrong. Please try again.' });
@@ -51,10 +53,11 @@ export default function ContactForm() {
   };
 
   return (
-    <div className="glass-card" style={{ padding: '2.5rem' }}>
+    <div className={styles.card}>
+      <h2 className={styles.infoTitle}>Send Us a Message</h2>
       <form onSubmit={handleSubmit}>
         {productId && (
-          <div style={{ padding: '0.75rem 1rem', marginBottom: '1.5rem', borderRadius: '8px', backgroundColor: 'rgba(201, 168, 76, 0.1)', border: '1px solid var(--glass-border)', color: 'var(--gold-light)', fontSize: '0.9rem' }}>
+          <div style={{ padding: '0.75rem 1rem', marginBottom: '1.5rem', borderRadius: '8px', backgroundColor: 'rgba(6, 41, 110, 0.08)', border: '1px solid var(--glass-border)', color: 'var(--gold-light)', fontSize: '0.9rem' }}>
             This enquiry references a specific product you viewed.
           </div>
         )}
@@ -72,32 +75,39 @@ export default function ContactForm() {
           </div>
         )}
 
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="name">Full Name *</label>
-          <input type="text" id="name" name="name" required value={formData.name} onChange={handleChange} />
+        <div className={styles.row}>
+          <div className={styles.field}>
+            <label htmlFor="name">Full Name <span className={styles.required}>*</span></label>
+            <input type="text" id="name" name="name" required placeholder="Your name" value={formData.name} onChange={handleChange} />
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="email">Email Address <span className={styles.required}>*</span></label>
+            <input type="email" id="email" name="email" required placeholder="you@example.com" value={formData.email} onChange={handleChange} />
+          </div>
         </div>
 
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="email">Email Address *</label>
-          <input type="email" id="email" name="email" required value={formData.email} onChange={handleChange} />
+        <div className={styles.row}>
+          <div className={styles.field}>
+            <label htmlFor="phone">Phone Number <span className={styles.required}>*</span></label>
+            <input type="tel" id="phone" name="phone" required placeholder="+91 XXXXX XXXXX" value={formData.phone} onChange={handleChange} />
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="company">Company / Organization</label>
+            <input type="text" id="company" name="company" placeholder="Optional" value={formData.company} onChange={handleChange} />
+          </div>
         </div>
 
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="phone">Phone Number</label>
-          <input type="tel" id="phone" name="phone" value={formData.phone} onChange={handleChange} />
+        <div className={styles.field}>
+          <label htmlFor="subject">Subject <span className={styles.required}>*</span></label>
+          <input type="text" id="subject" name="subject" required placeholder="What is your enquiry about?" value={formData.subject} onChange={handleChange} />
         </div>
 
-        <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="company">Company / Organization</label>
-          <input type="text" id="company" name="company" value={formData.company} onChange={handleChange} />
+        <div className={styles.field}>
+          <label htmlFor="message">Message <span className={styles.required}>*</span></label>
+          <textarea id="message" name="message" rows="3" required placeholder="Tell us about your requirement, quantities, timelines, etc." value={formData.message} onChange={handleChange}></textarea>
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label htmlFor="message">Message *</label>
-          <textarea id="message" name="message" rows="5" required value={formData.message} onChange={handleChange}></textarea>
-        </div>
-
-        <button type="submit" className="btn-primary" style={{ width: '100%' }} disabled={isSubmitting}>
+        <button type="submit" className={`btn-primary ${styles.submit}`} disabled={isSubmitting}>
           {isSubmitting ? 'Sending...' : 'Send Enquiry'}
         </button>
       </form>

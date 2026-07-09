@@ -10,10 +10,12 @@ import docKitHover from '@/assets/on hover/Doc kit.png';
 import astraHover from '@/assets/on hover/astra.png';
 import fashionHover from '@/assets/on hover/fashion.png';
 import guestHover from '@/assets/on hover/guest.png';
+import elevateBg from '@/assets/elevate.png';
 import { API_BASE } from '@/lib/api';
 import Reveal from '@/components/ui/Reveal';
 import BannerCarousel from '@/components/ui/BannerCarousel';
 import HeroCarousel from '@/components/ui/HeroCarousel';
+import VideoShowcase from '@/components/ui/VideoShowcase';
 import styles from './page.module.css';
 
 const USPS = [
@@ -310,7 +312,23 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Featured products, grouped by section */}
+      {/* Product films — a self-playing reel of our work in motion */}
+      <section className="section-padding">
+        <div className="container">
+          <Reveal>
+            <SectionHeading
+              eyebrow="See It In Action"
+              title="Our Gifts in Motion"
+              subtitle="Our premium gifts, in motion — see each piece come to life, then tap through to explore it and enquire."
+            />
+          </Reveal>
+          <Reveal delay={0.1}>
+            <VideoShowcase />
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ===== Featured products, grouped by section ("Shop by Category") — temporarily commented out =====
       {showcases.length > 0 && (
         <section className="section-padding">
           <div className="container">
@@ -354,48 +372,56 @@ export default async function Home() {
           </div>
         </section>
       )}
+      ===== end "Shop by Category" section ===== */}
 
-      {/* Why choose us */}
+      {/* Why choose us — journey timeline */}
       <section className="section-padding" style={{ backgroundColor: 'var(--bg-alt)' }}>
         <div className="container">
-          <div className="grid-2" style={{ alignItems: 'start' }}>
-            <Reveal>
-              <SectionHeading
-                align="left"
-                eyebrow="Our Promise"
-                title="Why Choose Us"
-                subtitle="At Goodwill Printers, quality, innovation, and customer satisfaction remain at the heart of everything we do."
-              />
+          <Reveal>
+            <SectionHeading
+              eyebrow="Our Promise"
+              title="Why Choose Us"
+              subtitle="At Goodwill Printers, quality, innovation, and customer satisfaction remain at the heart of everything we do."
+            />
+          </Reveal>
 
-              <div className={styles.usps}>
-                {USPS.map(({ icon: Icon, title, text }) => (
-                  <div className={styles.uspItem} key={title}>
-                    <div className={styles.uspIcon}>
-                      <Icon size={22} />
-                    </div>
-                    <div>
+          <div className={styles.journey}>
+            {/* Decorative connecting wave that threads through each step */}
+            <svg
+              className={styles.journeyWave}
+              viewBox="0 0 1000 260"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M20,200 C160,200 180,90 320,90 C460,90 480,200 620,200 C760,200 780,70 980,70"
+                fill="none"
+                stroke="var(--blue)"
+                strokeWidth="3"
+                strokeLinecap="round"
+                opacity="0.35"
+              />
+            </svg>
+
+            <div className={styles.journeyTrack}>
+              {USPS.map(({ icon: Icon, title, text }, i) => (
+                <Reveal key={title} delay={i * 0.1}>
+                  <div className={`${styles.journeyStep} ${i % 2 === 1 ? styles.journeyStepDown : ''}`}>
+                    <span className={styles.journeyGhost}>{i + 1}</span>
+                    <span className={styles.journeyNode}>
+                      <span className={styles.journeyNodeDot}>
+                        <Icon size={18} />
+                      </span>
+                    </span>
+                    <div className={styles.journeyCard}>
+                      <span className={styles.journeyStepLabel}>Step {String(i + 1).padStart(2, '0')}</span>
                       <h4>{title}</h4>
                       <p>{text}</p>
                     </div>
                   </div>
-                ))}
-              </div>
-            </Reveal>
-
-            <Reveal delay={0.12} className={styles.whyImages}>
-              <img
-                src="/why-choose-us/built-to-impress.jpg"
-                alt="Made to organize, built to impress — smart solutions for every professional"
-                className={styles.whyImg}
-                loading="lazy"
-              />
-              <img
-                src="/why-choose-us/crafted-with-care.jpg"
-                alt="Crafted with care — precision in every detail, passion in every product"
-                className={styles.whyImg}
-                loading="lazy"
-              />
-            </Reveal>
+                </Reveal>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -426,7 +452,9 @@ export default async function Home() {
 
       {/* Closing CTA */}
       <section className={styles.cta}>
-        <div className="container">
+        <Image src={elevateBg} alt="" fill sizes="100vw" className={styles.ctaBg} />
+        <div className={styles.ctaVeil} />
+        <div className="container" style={{ position: 'relative', zIndex: 2 }}>
           <Reveal className="text-center">
             <h2 className={styles.ctaTitle}>Ready to elevate your corporate gifting?</h2>
             <p className={styles.ctaText}>

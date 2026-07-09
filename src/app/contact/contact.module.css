@@ -1,0 +1,179 @@
+/* Contact page — the branded contact artwork is the full-bleed background.
+   The image shows at ~80% strength; a light 20% veil keeps the copy readable.
+   Spacing is tuned so the heading, copy and both cards fit within a single
+   viewport, keeping the whole background visible at a glance. */
+.wrap {
+  position: relative;
+  min-height: calc(100vh - var(--header-height));
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 2rem 0 2.5rem;
+  overflow: hidden;
+}
+
+/* Background image layer — the contact artwork itself (next/image fill) */
+.bgImage {
+  object-fit: cover;
+  object-position: center;
+  z-index: 0;
+}
+
+/* Light veil for text readability — the image stays clearly visible */
+.veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(244, 247, 252, 0.3);
+}
+
+/* Content sits above the image + veil */
+.inner {
+  position: relative;
+  z-index: 2;
+}
+
+.heading {
+  text-align: center;
+  font-size: clamp(2rem, 4vw, 3rem);
+  margin-bottom: 1.75rem;
+  text-shadow: 0 2px 12px rgba(255, 255, 255, 0.7);
+}
+
+.intro {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 1.5rem;
+  color: var(--text-gray);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  text-shadow: 0 1px 8px rgba(255, 255, 255, 0.8);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+  padding: 1.5rem;
+}
+
+/* Compact form fields so everything fits above the fold */
+.card :global(input),
+.card :global(textarea) {
+  padding: 0.55rem 0.85rem;
+  margin-bottom: 0;
+  font-size: 0.9rem;
+  background-color: rgba(255, 255, 255, 0.55);
+  border: 1.5px solid rgba(6, 41, 110, 0.35);
+}
+
+.card :global(input:focus),
+.card :global(textarea:focus) {
+  background-color: rgba(255, 255, 255, 0.85);
+}
+
+.card :global(label) {
+  margin-bottom: 0.3rem;
+  font-size: 0.9rem;
+}
+
+.infoTitle {
+  color: var(--gold-light);
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.infoItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+  color: var(--text-gray);
+  font-size: 0.9rem;
+}
+
+.infoIcon {
+  flex-shrink: 0;
+  color: var(--gold-accent);
+  margin-top: 2px;
+}
+
+.infoItem a {
+  color: var(--gold-accent);
+  text-decoration: none;
+  word-break: break-word;
+}
+
+.infoItem a:hover {
+  text-decoration: underline;
+}
+
+.infoLabel {
+  display: block;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.1rem;
+}
+
+.whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  padding: 0.6rem 1.1rem;
+  background: #25d366;
+  color: #fff;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.whatsapp:hover {
+  filter: brightness(0.95);
+}
+
+/* Two-up rows inside the form */
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+@media (max-width: 480px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  margin-bottom: 0.75rem;
+}
+
+.required {
+  color: #dc2626;
+}
+
+/* Pill-shaped submit button */
+.submit {
+  width: 100%;
+  border-radius: 999px;
+  margin-top: 0.25rem;
+}

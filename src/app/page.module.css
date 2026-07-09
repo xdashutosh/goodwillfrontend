@@ -108,63 +108,130 @@
   margin-top: 0.5rem;
 }
 
-.usps {
+/* ===== Why Choose Us — journey timeline =====================================
+   A zigzag "path" of numbered steps threaded by a decorative wave. Alternate
+   steps drop lower (journeyStepDown) so cards read as a route across the page.
+   Uses only the brand blue palette; no imagery. */
+.journey {
+  position: relative;
+  margin-top: 2.75rem;
+}
+
+/* The connecting wave sits behind the nodes, spanning the full track width.
+   preserveAspectRatio="none" lets it stretch to whatever the row width is. */
+.journeyWave {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 190px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.journeyTrack {
+  position: relative;
+  z-index: 1;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
+  align-items: start;
 }
 
-.uspItem {
-  display: flex;
-  gap: 0.85rem;
-  align-items: flex-start;
-}
-
-.uspIcon {
-  flex-shrink: 0;
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
-  background: var(--blue-50);
-  color: var(--blue);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.uspItem h4 {
-  font-family: var(--font-inter);
-  font-size: 0.94rem;
-  margin-bottom: 0.25rem;
-  color: var(--heading);
-}
-
-.uspItem p {
-  font-size: 0.79rem;
-  color: var(--muted);
-}
-
-.aboutImg {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-}
-
-/* Why Choose Us imagery */
-.whyImages {
+.journeyStep {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  align-items: center;
+  text-align: center;
+  padding-top: 0.5rem;
 }
 
-.whyImg {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: var(--border-radius);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
+/* Every second step drops down, creating the zigzag route */
+.journeyStepDown {
+  margin-top: 4.5rem;
+}
+
+/* Big faint watermark numeral behind each step */
+.journeyGhost {
+  position: absolute;
+  top: -2.4rem;
+  right: 0.4rem;
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: 7rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--blue);
+  opacity: 0.06;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Node ring + icon that anchors the step to the wave */
+.journeyNode {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 10px 26px rgba(6, 41, 110, 0.14);
+  margin-bottom: 1.25rem;
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.journeyNodeDot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue) 0%, var(--brand-blue) 100%);
+  color: #ffffff;
+  box-shadow: 0 6px 14px rgba(6, 41, 110, 0.3);
+  transition: transform 0.4s ease;
+}
+
+.journeyStep:hover .journeyNode {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 34px rgba(6, 41, 110, 0.22);
+}
+
+.journeyStep:hover .journeyNodeDot {
+  transform: scale(1.08) rotate(-4deg);
+}
+
+.journeyCard {
+  max-width: 230px;
+}
+
+.journeyStepLabel {
+  display: inline-block;
+  font-family: var(--font-inter);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-bottom: 0.4rem;
+}
+
+.journeyCard h4 {
+  font-family: var(--font-inter);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--heading);
+  margin-bottom: 0.4rem;
+}
+
+.journeyCard p {
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--muted);
+  margin: 0;
 }
 
 /* Featured / latest products grid on the home page (Shop by Category).
@@ -535,9 +602,25 @@
 
 /* Closing CTA band */
 .cta {
-  background: linear-gradient(135deg, var(--brand-navy) 0%, var(--blue) 100%);
+  position: relative;
+  overflow: hidden;
   padding: 5rem 0;
   text-align: center;
+}
+
+/* elevate.png background artwork (next/image fill) */
+.ctaBg {
+  object-fit: cover;
+  object-position: center;
+  z-index: 0;
+}
+
+/* Subtle dark veil keeps the white copy legible without hiding the artwork */
+.ctaVeil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(6, 41, 110, 0.25);
 }
 
 .ctaTitle {
@@ -546,7 +629,7 @@
 }
 
 .ctaText {
-  color: rgba(255, 255, 255, 0.88);
+  color: rgba(255, 255, 255, 0.9);
   max-width: 620px;
   margin: 0 auto;
 }
@@ -557,14 +640,14 @@
   border-radius: 10px;
   font-weight: 600;
   background: #ffffff;
-  color: var(--blue);
+  color: var(--brand-navy);
   transition: var(--transition);
 }
 
 .ctaBtnWhite:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
-  color: var(--blue-hover);
+  color: var(--brand-navy);
 }
 
 .ctaBtnGhost {
@@ -573,18 +656,36 @@
   border-radius: 10px;
   font-weight: 600;
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
   transition: var(--transition);
 }
 
 .ctaBtnGhost:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.15);
   color: #ffffff;
 }
 
+/* Timeline collapses to two columns on tablet, one on phones */
+@media (max-width: 900px) {
+  .journeyWave {
+    display: none;
+  }
+  .journeyTrack {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2.5rem 1.5rem;
+  }
+  .journeyStepDown {
+    margin-top: 0;
+  }
+}
+
 @media (max-width: 768px) {
-  .usps {
+  .journeyTrack {
     grid-template-columns: 1fr;
+    gap: 2.75rem;
+  }
+  .journeyCard {
+    max-width: 300px;
   }
 
   .sectionHead {

@@ -1,7 +1,10 @@
 import { Suspense } from 'react';
-import { MessageCircle } from 'lucide-react';
+import Image from 'next/image';
+import { Mail, Phone, MapPin, MessageCircle } from 'lucide-react';
 import { API_BASE, WHATSAPP_NUMBER } from '@/lib/api';
+import contactBg from '@/assets/contactus backgroung.png';
 import ContactForm from './ContactForm';
+import styles from './contact.module.css';
 
 export const metadata = {
   title: 'Contact Us',
@@ -28,51 +31,53 @@ export default async function Contact() {
   const whatsappHref = `https://wa.me/${whatsapp}?text=${encodeURIComponent('Hi Goodwill Printers, I would like to enquire about your products.')}`;
 
   return (
-    <>
-      <section className="hero" style={{ minHeight: '40vh' }}>
-        <div className="container">
-          <h1>Contact Us</h1>
-          <p>Get in touch for custom orders, quotes, or any general enquiries.</p>
-        </div>
-      </section>
+    <section className={styles.wrap}>
+      <Image src={contactBg} alt="" fill priority sizes="100vw" className={styles.bgImage} />
+      <div className={styles.veil} />
 
-      <section className="section-padding">
-        <div className="container">
-          <div className="grid-2">
-            <div>
-              <h2>Let&apos;s Discuss Your Needs</h2>
-              <p style={{ color: 'var(--text-gray)', marginBottom: '2rem' }}>
-                Fill out the form to request a quote or ask about our customization options. Our team will get back to you within 24 hours.
-              </p>
+      <div className={`container ${styles.inner}`}>
+        <h1 className={styles.heading}>Contact Us</h1>
 
-              <div className="glass-card" style={{ padding: '2rem', marginBottom: '2rem' }}>
-                <h3 style={{ color: 'var(--gold-light)', marginBottom: '1rem', fontSize: '1.2rem' }}>Contact Information</h3>
-                <p style={{ color: 'var(--text-gray)', marginBottom: '0.5rem' }}>
-                  <strong>Email:</strong>{' '}
-                  <a href={`mailto:${email}`} style={{ color: 'var(--gold-accent)' }}>{email}</a>
-                </p>
-                {phone && (
-                  <p style={{ color: 'var(--text-gray)', marginBottom: '0.5rem' }}>
-                    <strong>Phone:</strong>{' '}
-                    <a href={`tel:${phone.replace(/\s+/g, '')}`} style={{ color: 'var(--gold-accent)' }}>{phone}</a>
-                  </p>
-                )}
-                <p style={{ color: 'var(--text-gray)', whiteSpace: 'pre-line' }}>
-                  <strong>Headquarters:</strong>{'\n'}{address}
-                </p>
-              </div>
+        <div className={styles.layout}>
+          <div className={styles.card}>
+            <h2 className={styles.infoTitle}>Contact Information</h2>
 
-              <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ background: '#25d366', color: '#fff', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-                <MessageCircle size={18} /> Chat with us on WhatsApp
-              </a>
+            <div className={styles.infoItem}>
+              <Mail size={20} className={styles.infoIcon} />
+              <span>
+                <span className={styles.infoLabel}>Email</span>
+                <a href={`mailto:${email}`}>{email}</a>
+              </span>
             </div>
 
-            <Suspense fallback={<div className="glass-card" style={{ padding: '2.5rem' }}>Loading form...</div>}>
-              <ContactForm />
-            </Suspense>
+            {phone && (
+              <div className={styles.infoItem}>
+                <Phone size={20} className={styles.infoIcon} />
+                <span>
+                  <span className={styles.infoLabel}>Phone</span>
+                  <a href={`tel:${phone.replace(/\s+/g, '')}`}>{phone}</a>
+                </span>
+              </div>
+            )}
+
+            <div className={styles.infoItem}>
+              <MapPin size={20} className={styles.infoIcon} />
+              <span style={{ whiteSpace: 'pre-line' }}>
+                <span className={styles.infoLabel}>Headquarters</span>
+                {address}
+              </span>
+            </div>
+
+            <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className={styles.whatsapp}>
+              <MessageCircle size={18} /> Chat with us on WhatsApp
+            </a>
           </div>
+
+          <Suspense fallback={<div className={styles.card}>Loading form...</div>}>
+            <ContactForm />
+          </Suspense>
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }
