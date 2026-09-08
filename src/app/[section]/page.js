@@ -1,25 +1,12 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { API_BASE, fetchJson } from '@/lib/api';
+import { getSiteAssets, assetSlot } from '@/lib/assets';
 import ProductCatalog from '@/components/products/ProductCatalog';
 import CatalogSkeleton from '@/components/products/CatalogSkeleton';
 import SectionCategoryTags from '@/components/products/SectionCategoryTags';
 import styles from './section.module.css';
-import diaryHeader from '@/assets/header/diary.png';
-import organizerHeader from '@/assets/header/organizer.png';
-import corporateHeader from '@/assets/header/corporate.png';
-import notebookHeader from '@/assets/header/notebook.png';
-
-// Designed header banners shown full-width at the top of a section page,
-// keyed by section slug. Sections without an entry fall back to the text hero.
-const HEADER_IMAGES = {
-  diaries: diaryHeader,
-  organizers: organizerHeader,
-  'corporate-gifts': corporateHeader,
-  notebooks: notebookHeader,
-};
 
 // Fetch section data (retries transient backend failures; null on 404)
 async function getSection(slug) {
@@ -55,20 +42,20 @@ export async function generateMetadata({ params }) {
 
 export default async function SectionPage({ params }) {
   const { section: slug } = await params;
-  const section = await getSection(slug);
+  const [section, assets] = await Promise.all([getSection(slug), getSiteAssets()]);
 
   if (!section) {
     notFound();
   }
 
-  const headerImage = HEADER_IMAGES[slug];
+  const headerImage = assetSlot(assets, 'section_headers', slug)?.url || null;
 
   return (
     <>
       {headerImage ? (
         <div className={styles.headerBanner}>
-          <div className={styles.headerBannerBg} style={{ backgroundImage: `url(${headerImage.src})` }} aria-hidden="true" />
-          <Image src={headerImage} alt={section.name} priority sizes="100vw" className={styles.headerBannerImg} />
+          <div className={styles.headerBannerBg} style={{ backgroundImage: `url(${headerImage})` }} aria-hidden="true" />
+          <img src={headerImage} alt={section.name} className={styles.headerBannerImg} />
         </div>
       ) : (
         <section className="hero" style={{ minHeight: '50vh', maxHeight: '560px', backgroundImage: section.image_url ? `linear-gradient(rgba(10, 22, 40, 0.7), rgba(10, 22, 40, 0.9)), url(${section.image_url})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>

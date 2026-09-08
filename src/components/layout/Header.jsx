@@ -7,8 +7,9 @@ import { Facebook, Instagram, Twitter, Linkedin, Whatsapp } from '@/components/u
 import { normalizeWhatsApp } from '@/lib/api';
 import styles from './Header.module.css';
 
-export default function Header({ navData }) {
+export default function Header({ navData, logo }) {
   const sections = navData?.sections || [];
+  const logoSrc = logo || '/brand/goodwill-printers.png';
   const contact = navData?.contact || {};
   const socials = navData?.socials || {};
 
@@ -79,7 +80,7 @@ export default function Header({ navData }) {
       <div className={styles.mainnav}>
         <div className={`container ${styles.mainnavInner}`}>
           <Link href="/" className={styles.logo} aria-label="Goodwill Printers — Home">
-            <img src="/brand/goodwill-printers.png" alt="Goodwill Printers" className={styles.logoImg} />
+            <img src={logoSrc} alt="Goodwill Printers" className={styles.logoImg} />
           </Link>
 
           <nav className={styles.desktopNav} aria-label="Primary">

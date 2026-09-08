@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { API_BASE } from '@/lib/api';
@@ -14,6 +14,11 @@ export default function ProductCatalog({ lockedSection = '', lockedCategory = ''
   const [filters, setFilters] = useState({ sizes: [], types: [], coverStyles: [], categories: [] });
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
   const [view, setView] = useState('grid'); // grid or list
+
+  // Whether we've already received the sidebar filter aggregations. The API only
+  // returns them for page 1 by default, so if the visitor landed directly on
+  // page 2+ we explicitly ask for them until we have them.
+  const filtersLoadedRef = useRef(false);
 
   // Current active filters from URL (locked props take precedence)
   const activeSection = lockedSection || searchParams.get('section') || '';
@@ -44,9 +49,17 @@ export default function ProductCatalog({ lockedSection = '', lockedCategory = ''
       if (activeType) query.append('type', activeType);
       if (activeCover) query.append('coverStyle', activeCover);
       if (activeSearch) query.append('search', activeSearch);
+      // Ask for the filter aggregations if we don't have them yet (e.g. the
+      // visitor deep-linked straight to page 2+, where the API omits them).
+      if (!filtersLoadedRef.current) query.append('withFilters', '1');
 
       const res = await fetch(`${API_BASE}/api/products?${query.toString()}`);
-      if (!res.ok) throw new Error(`API error: ${res.status}`);
+      if (!res.ok) {
+        console.warn(`API returned status ${res.status}`);
+        setProducts([]);
+        setLoadError(true);
+        return;
+      }
       const data = await res.json();
 
       setLoadError(false);
@@ -54,6 +67,7 @@ export default function ProductCatalog({ lockedSection = '', lockedCategory = ''
       setPagination(data.pagination || { page: 1, totalPages: 1, total: 0 });
       if (data.filters) {
         setFilters(data.filters);
+        filtersLoadedRef.current = true;
       }
     } catch (error) {
       console.error('Failed to fetch products:', error);
