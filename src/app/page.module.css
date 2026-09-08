@@ -430,8 +430,10 @@
 .collectionImgWrap img {
   width: 100%;
   height: 100%;
-  /* Square mockups fill the square frame edge-to-edge with no whitespace. */
-  object-fit: cover;
+  /* Show the whole uploaded image — never crop the edges. A square mockup still
+     fills the square frame exactly; an off-ratio replacement is letterboxed on
+     the white background instead of being cut. */
+  object-fit: contain;
   object-position: center;
   display: block;
   transition: transform 0.5s ease;
@@ -693,28 +695,36 @@
   }
 }
 
-/* Corporate gifting range — hero Doc Kit (left) + trio of cards (right) */
+/* Container wider & outside spacing reduced so all cards fit properly and look organized */
+.giftContainer {
+  max-width: 1400px;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Corporate gifting range — hero Doc Kit (left) + supporting cards (right) */
 .giftLayout {
   display: grid;
-  grid-template-columns: minmax(300px, 1fr) 2fr;
-  gap: 1.75rem;
+  grid-template-columns: minmax(280px, 1.2fr) 3.8fr;
+  gap: 1.15rem;
   align-items: stretch;
 }
 
-/* Hero piece — just the Doc Kit image, no copy. Its natural height sets the
-   row height; the trio column stretches to match it. */
-/* Doc Kit drives the row height; its image shows in full, untouched. */
+/* Hero piece — Doc Kit matches the FULL height of right cards (image + text) */
 .giftMain {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   border-radius: var(--border-radius);
   overflow: hidden;
 }
 
-/* Wrapper that lets the hover image sit on top of the base Doc Kit image.
-   The base image (in normal flow) drives the height; the hover overlay is
-   absolutely positioned to match it. */
 .giftMainImgWrap {
   position: relative;
   display: block;
+  width: 100%;
+  height: 100%;
+  flex: 1;
   border-radius: var(--border-radius);
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -728,14 +738,15 @@
 
 .giftMainImg {
   width: 100%;
-  height: auto;
+  height: 100%;
+  /* Never crop the uploaded gift image — show it whole within the frame. */
+  object-fit: contain;
+  object-position: center;
   display: block;
   border-radius: var(--border-radius);
 }
 
-/* Overlay hover image — fades in on hover. Uses contain (not cover) so the
-   whole image is visible and never cropped, fitting inside the base image's
-   box. The base/non-hover images are untouched. */
+/* Overlay hover image — fades in on hover. */
 .giftHoverImg {
   position: absolute;
   inset: 0;
@@ -753,36 +764,33 @@
   opacity: 1;
 }
 
-/* Doc Kit hover image fills its whole frame (no empty bands) instead of
-   being letterboxed like the smaller cards. */
 .giftMainImgWrap .giftHoverImg {
-  object-fit: cover;
+  object-fit: contain;
 }
 
-/* Trio of supporting gift cards — each fills the full row height so image +
-   short caption together equal the Doc Kit height. */
+/* Supporting gift cards */
 .giftCards {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  /* Single row that fills the stretched container, so each card matches the
-     Doc Kit height and its image shrinks to fit above the caption. */
-  grid-auto-rows: 1fr;
-  gap: 1.5rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  align-items: stretch;
 }
 
-/* No card chrome — just the image, with the caption sitting separately below.
-   Each card fills the full row height, so the image shrinks to fit and the
-   image + caption together line up with the Doc Kit height. */
-/* The whole card (image + caption) is a clickable link to the product page. */
-.giftCardLink {
-  display: block;
+.giftCardReveal {
   height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.giftCardLink {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
   color: inherit;
   text-decoration: none;
 }
 
-/* Lift the image on hover so the card reads as clickable. The caption stays
-   put; only the image wrap moves, keeping the row heights aligned. */
 .giftCardLink:hover .giftCardImgWrap {
   transform: translateY(-6px) scale(1.02);
   box-shadow: 0 16px 30px rgba(0, 0, 0, 0.16);
@@ -797,12 +805,13 @@
   flex-direction: column;
   margin: 0;
   height: 100%;
+  width: 100%;
 }
 
 .giftCardImgWrap {
   position: relative;
-  flex: 1;
-  min-height: 0;
+  width: 100%;
+  aspect-ratio: 4 / 4.5;
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   border-radius: var(--border-radius);
@@ -811,26 +820,31 @@
 .giftCardImg {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  /* Never crop the uploaded gift image — show it whole within the frame. */
+  object-fit: contain;
   object-position: center;
   display: block;
 }
 
 .giftCardBody {
-  padding: 0.85rem 0.15rem 0;
+  padding: 0.75rem 0.1rem 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .giftCardBody h4 {
-  margin: 0 0 0.4rem;
+  margin: 0 0 0.35rem;
   color: var(--heading);
   font-family: var(--font-inter);
-  font-size: 0.99rem;
+  font-size: 0.98rem;
+  font-weight: 600;
 }
 
 .giftCardDesc {
   color: var(--muted);
-  font-size: 0.8rem;
-  line-height: 1.6;
+  font-size: 0.79rem;
+  line-height: 1.55;
   margin: 0;
 }
 
@@ -839,20 +853,25 @@
   border-radius: 999px;
 }
 
-/* Tablet: hero on top, trio below. No shared row height now, so give the
-   card images a fixed ratio instead of stretching them to fill. */
-@media (max-width: 900px) {
+/* Responsive breakdowns */
+@media (max-width: 1100px) {
   .giftLayout {
     grid-template-columns: 1fr;
   }
 
-  .giftCardImgWrap {
-    flex: none;
-    aspect-ratio: 3 / 4;
+  .giftMainImgWrap {
+    aspect-ratio: 16 / 9;
+    height: auto;
   }
 }
 
-/* Mobile: trio stacks */
+@media (max-width: 900px) {
+  .giftCards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile: cards stack */
 @media (max-width: 600px) {
   .giftCards {
     grid-template-columns: 1fr;

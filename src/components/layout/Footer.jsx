@@ -3,8 +3,9 @@ import Link from 'next/link';
 import { Facebook, Instagram, Twitter, Linkedin, Whatsapp } from '@/components/ui/SocialIcons';
 import { normalizeWhatsApp } from '@/lib/api';
 
-export default function Footer({ socials = {}, contact = {} }) {
+export default function Footer({ socials = {}, contact = {}, logo }) {
   const currentYear = new Date().getFullYear();
+  const logoSrc = logo || '/brand/plan-a-day.png';
   const email = contact.email || 'tanujdhawangp@gmail.com';
   const waNumber = normalizeWhatsApp(contact.whatsapp);
   const socialLinks = [
@@ -22,7 +23,7 @@ export default function Footer({ socials = {}, contact = {} }) {
           {/* Brand Col */}
           <div className="footer-brand">
             <Link href="/" className="logo">
-              <img src="/brand/plan-a-day.png" alt="Plan.A.Day by Goodwill Printers" className="logo-img" />
+              <img src={logoSrc} alt="Plan.A.Day by Goodwill Printers" className="logo-img" />
             </Link>
             <p className="footer-desc">
               Crafting Corporate Excellence Since 1978. Premium corporate stationery and gifting solutions designed for modern businesses.

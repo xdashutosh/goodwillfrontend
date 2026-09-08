@@ -1,17 +1,51 @@
+/* ─── Wrapper ───────────────────────────────────────────── */
 .showcase {
   margin-top: 2.5rem;
+  overflow: hidden;           /* clip the infinite track to the viewport */
+  width: 100%;
 }
 
-/* All four clips shown together. Shorter-than-portrait frame (4:5) so the row
-   fits neatly without towering. */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+/* ─── Scroll container ──────────────────────────────────── */
+.carouselContainer {
+  width: 100%;
+  padding: 0.5rem 0;
+}
+
+/* ─── Infinite marquee track ────────────────────────────── */
+.track {
+  display: flex;
   gap: 1.25rem;
+  width: max-content;         /* as wide as all cards + clones combined */
+  animation: marquee 30s linear infinite;
+  will-change: transform;
 }
 
+/* Pause when user hovers anywhere on the reel */
+.showcase:hover .track {
+  animation-play-state: paused;
+}
+
+/* The clone group sits flush after the originals */
+.cloneGroup {
+  display: contents;          /* no extra wrapper box — children join the flex row */
+}
+
+/* ─── Keyframe: scroll from 0 → -50% (exactly one full set width) ─ */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ─── Individual card wrapper ───────────────────────────── */
+.cardWrapper {
+  flex: 0 0 220px;            /* fixed card width; adjust to taste */
+}
+
+/* ─── Card shell ────────────────────────────────────────── */
 .card {
   position: relative;
+  display: block;
+  width: 100%;
   aspect-ratio: 9 / 16;
   border-radius: 18px;
   overflow: hidden;
@@ -27,6 +61,7 @@
   box-shadow: 0 26px 54px rgba(0, 0, 0, 0.26);
 }
 
+/* ─── Video fill ────────────────────────────────────────── */
 .video {
   position: absolute;
   inset: 0;
@@ -36,7 +71,7 @@
   object-position: center;
 }
 
-/* Bottom gradient so the floating product bar stays readable over any frame. */
+/* ─── Bottom gradient ───────────────────────────────────── */
 .shade {
   position: absolute;
   inset: 0;
@@ -49,7 +84,7 @@
   );
 }
 
-/* Floating "shop" bar over the bottom of the clip. */
+/* ─── Floating product bar ──────────────────────────────── */
 .product {
   position: absolute;
   left: 0.7rem;
@@ -111,18 +146,36 @@
   transform: translateX(3px);
 }
 
-/* Tablet: two per row */
+/* ─── Tag badge (if used) ───────────────────────────────── */
+.tagBadge {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 10;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(255, 200, 80, 0.92);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #1a1200;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* ─── Responsive card widths ────────────────────────────── */
 @media (max-width: 860px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
+  .cardWrapper {
+    flex: 0 0 180px;
   }
 }
 
-/* Mobile: single column */
 @media (max-width: 520px) {
-  .grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+  .cardWrapper {
+    flex: 0 0 140px;
   }
   .card {
     aspect-ratio: 3 / 4;

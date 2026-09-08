@@ -4,6 +4,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import WhatsAppFab from '@/components/layout/WhatsAppFab';
 import { API_BASE } from '@/lib/api';
+import { getSiteAssets, assetSlot } from '@/lib/assets';
 
 // Body/UI font — Avenir Next. It's a proprietary (Apple/Linotype) font, not
 // available via next/font/google, so it's set as a system font stack on the
@@ -95,13 +96,19 @@ async function getNavData() {
 }
 
 export default async function RootLayout({ children }) {
-  const navData = await getNavData();
+  const [navData, assets] = await Promise.all([getNavData(), getSiteAssets()]);
+
+  const logos = {
+    primary: assetSlot(assets, 'brand', 'logo_primary')?.url || '/brand/goodwill-printers.png',
+    footer: assetSlot(assets, 'brand', 'logo_footer')?.url || '/brand/plan-a-day.png',
+  };
+
   return (
     <html lang="en" className={`${cormorant.variable}`}>
       <body>
-        <Header navData={navData} />
+        <Header navData={navData} logo={logos.primary} />
         <main>{children}</main>
-        <Footer socials={navData.socials} contact={navData.contact} />
+        <Footer socials={navData.socials} contact={navData.contact} logo={logos.footer} />
         <WhatsAppFab number={navData.contact.whatsapp} />
       </body>
     </html>

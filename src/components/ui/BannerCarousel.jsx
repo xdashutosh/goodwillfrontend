@@ -25,7 +25,10 @@ export default function BannerCarousel({ banners }) {
       {/* Blurred, dimmed copy of the banner fills the stage so smaller / off-ratio
           images still look full and edge-to-edge instead of sitting on flat bars. */}
       <div className="banner-bg" style={{ backgroundImage: `url("${b.image_url}")` }} aria-hidden="true" />
-      <img src={b.image_url} alt={b.title || 'Goodwill Printers banner'} className="banner-img" />
+      <picture>
+        {b.webp_url && <source srcSet={b.webp_url} type="image/webp" />}
+        <img src={b.image_url} alt={b.title || 'Goodwill Printers banner'} className="banner-img" />
+      </picture>
     </div>
   );
 

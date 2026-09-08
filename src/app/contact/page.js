@@ -1,8 +1,7 @@
 import { Suspense } from 'react';
-import Image from 'next/image';
 import { Mail, Phone, MapPin, MessageCircle } from 'lucide-react';
 import { API_BASE, WHATSAPP_NUMBER, normalizeWhatsApp } from '@/lib/api';
-import contactBg from '@/assets/contactus backgroung.png';
+import { getSiteAssets, assetSlot } from '@/lib/assets';
 import ContactForm from './ContactForm';
 import styles from './contact.module.css';
 
@@ -23,7 +22,8 @@ async function getSettings() {
 }
 
 export default async function Contact() {
-  const settings = await getSettings();
+  const [settings, assets] = await Promise.all([getSettings(), getSiteAssets()]);
+  const bgUrl = assetSlot(assets, 'backgrounds', 'contact_bg')?.url || null;
   const email = settings.contact_email || 'tanujdhawangp@gmail.com';
   const phone = settings.contact_phone || '';
   const address = settings.contact_address || 'Goodwill Printers\nNew Delhi, India';
@@ -32,7 +32,15 @@ export default async function Contact() {
 
   return (
     <section className={styles.wrap}>
-      <Image src={contactBg} alt="" fill priority sizes="100vw" className={styles.bgImage} />
+      {bgUrl && (
+        <img
+          src={bgUrl}
+          alt=""
+          aria-hidden
+          className={styles.bgImage}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+        />
+      )}
       <div className={styles.veil} />
 
       <div className={`container ${styles.inner}`}>

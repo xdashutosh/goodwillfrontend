@@ -1,20 +1,9 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { Award, Factory, Palette, Gem, ArrowRight } from 'lucide-react';
-import poster2027 from '@/assets/2027collection.png';
-import docKit from '@/assets/Doc.kit.png';
-import astra from '@/assets/astra.png';
-import fashion from '@/assets/fashion.png';
-import guest from '@/assets/guest.png';
-import docKitHover from '@/assets/on hover/Doc kit.png';
-import astraHover from '@/assets/on hover/astra.png';
-import fashionHover from '@/assets/on hover/fashion.png';
-import guestHover from '@/assets/on hover/guest.png';
-import elevateBg from '@/assets/elevate.png';
 import { API_BASE } from '@/lib/api';
+import { getSiteAssets, assetList, assetSlot } from '@/lib/assets';
 import Reveal from '@/components/ui/Reveal';
 import BannerCarousel from '@/components/ui/BannerCarousel';
-import HeroCarousel from '@/components/ui/HeroCarousel';
 import VideoShowcase from '@/components/ui/VideoShowcase';
 import styles from './page.module.css';
 
@@ -39,45 +28,10 @@ export const metadata = {
   alternates: { canonical: '/' },
 };
 
-// Sections to feature on the home page (in display order)
-const SHOWCASE_SLUGS = ['diaries', 'notebooks', 'organizers', 'corporate-gifts'];
-
-// Collection artwork shown on the "Our Collections" cards
-const SECTION_IMAGES = {
-  diaries: '/collections/diaries.png',
-  notebooks: '/collections/notebooks.png',
-  organizers: '/collections/organizers.png',
-  'corporate-gifts': '/collections/corporate-gifts.png',
-};
-
-// Corporate gifting range featured below the 2027 poster. The Doc Kit is the
-// hero piece (large image, far left); the remaining three sit as a trio.
-const GIFT_ITEMS = [
-  {
-    image: astra,
-    hoverImage: astraHover,
-    name: 'Astra',
-    slug: 'astra-corporate-gifts',
-    description:
-      'A slimline leatherette card and document holder with smart slots for cards, cash and travel papers.',
-  },
-  {
-    image: fashion,
-    hoverImage: fashionHover,
-    name: 'Fashion Book',
-    slug: 'fashion-corporate-gifts',
-    description:
-      'A zip-around organiser pairing a phone pocket, card slots and a notepad — a sleek, premium gift.',
-  },
-  {
-    image: guest,
-    hoverImage: guestHover,
-    name: 'Guest Book',
-    slug: 'guest-book-corporate-gifts',
-    description:
-      'A debossed faux-leather guest book that adds a premium touch to weddings, launches and corporate events.',
-  },
-];
+// The "Our Collections" card art, the 2027 poster, the gifting range and the
+// closing-CTA background all come from the managed Asset Manager (S3). If a
+// collection has no entry the section simply renders without that image.
+const DEFAULT_CARD_ART = '/collections/our-collections.jpg';
 
 const FAQS = [
   {
@@ -117,24 +71,6 @@ async function getSections() {
   }
 }
 
-async function getSectionShowcases() {
-  const results = await Promise.all(
-    SHOWCASE_SLUGS.map(async (slug) => {
-      try {
-        const res = await fetch(`${API_BASE}/api/products?section=${slug}&limit=4&sort=newest`, {
-          next: { revalidate: 60 },
-        });
-        if (!res.ok) throw new Error('bad status');
-        const data = await res.json();
-        return { slug, products: data.products || [] };
-      } catch {
-        return { slug, products: [] };
-      }
-    })
-  );
-  return results.filter((r) => r.products.length > 0);
-}
-
 async function getSettings() {
   try {
     // Short revalidate so banner / content edits from the admin panel appear on
@@ -145,30 +81,6 @@ async function getSettings() {
   } catch {
     return {};
   }
-}
-
-const primaryImage = (product) => {
-  if (!product.images || product.images.length === 0) return null;
-  const primary = product.images.find((i) => i.is_primary);
-  return (primary || product.images[0]).thumbnail_url;
-};
-
-function ProductCard({ product }) {
-  return (
-    <Link href={`/product/${product.slug}`} className={`glass-card ${styles.featuredCard}`}>
-      <div className={styles.featuredImgWrap}>
-        {primaryImage(product) ? (
-          <img src={primaryImage(product)} alt={product.name} loading="lazy" />
-        ) : (
-          <div className={styles.featuredNoImg}>No Image</div>
-        )}
-      </div>
-      <div className={styles.featuredInfo}>
-        <span className={styles.featuredCat}>{product.category_name}</span>
-        <h4>{product.name}</h4>
-      </div>
-    </Link>
-  );
 }
 
 function SectionHeading({ eyebrow, title, subtitle, align = 'center' }) {
@@ -182,24 +94,60 @@ function SectionHeading({ eyebrow, title, subtitle, align = 'center' }) {
 }
 
 export default async function Home() {
-  const [sections, showcases, settings] = await Promise.all([
+  const [sections, settings, assets] = await Promise.all([
     getSections(),
-    getSectionShowcases(),
     getSettings(),
+    getSiteAssets(),
   ]);
 
-  const sectionMeta = Object.fromEntries(sections.map((s) => [s.slug, s]));
+  // Hero banners — managed in Admin Panel → Assets. Falls back to the legacy
+  // site_settings.banners list, then to nothing.
+  const bannerAssets = assetList(assets, 'hero_banners')
+    .filter((a) => a.url)
+    .map((a) => ({ image_url: a.url, webp_url: a.webp_url, title: a.title, link: a.link }));
+  const legacyBanners = Array.isArray(settings.banners)
+    ? settings.banners.filter((b) => b && b.image_url)
+    : [];
+  const banners = bannerAssets.length ? bannerAssets : legacyBanners;
 
-  const heroTitle = settings.hero_title || 'Crafting Corporate Excellence Since 1978';
-  const heroSubtitle =
-    settings.hero_subtitle ||
-    'Premium corporate stationery and gifting solutions that reflect professionalism, quality, and brand identity.';
-  const banners = Array.isArray(settings.banners) ? settings.banners.filter((b) => b && b.image_url) : [];
+  // "Our Collections" card art, by section slug (Asset Manager → collection_cards).
+  const cardArt = (slug) =>
+    assetSlot(assets, 'collection_cards', slug)?.url ||
+    assetSlot(assets, 'collection_cards', 'default')?.url ||
+    DEFAULT_CARD_ART;
+
+  // 2027 poster + closing-CTA background (Asset Manager → backgrounds). null = omit.
+  const posterUrl = assetSlot(assets, 'backgrounds', 'poster_2027')?.url || null;
+  const ctaBgUrl = assetSlot(assets, 'backgrounds', 'cta_bg')?.url || null;
+
+  // Gifting range: hero piece (Doc Kit / first) + supporting cards.
+  const giftAssets = assetList(assets, 'gifting').filter((a) => a.url);
+  const giftHeroAsset = giftAssets.find((a) => a.slot === 'doc-kit') || giftAssets[0] || null;
+  const giftHero = giftHeroAsset
+    ? {
+        image: giftHeroAsset.url,
+        hoverImage: giftHeroAsset.hover_url || null,
+        name: giftHeroAsset.title || 'Doc Kit',
+        href: giftHeroAsset.link || '/corporate-gifts',
+        description: giftHeroAsset.subtitle || '',
+      }
+    : null;
+  const giftCards = giftAssets
+    .filter((a) => a !== giftHeroAsset)
+    .map((a) => ({
+      image: a.url,
+      hoverImage: a.hover_url || null,
+      name: a.title || '',
+      href: a.link || '#',
+      description: a.subtitle || '',
+    }));
+
+  const showcaseVideos = assetList(assets, 'showcase_videos');
 
   return (
     <div className={styles.home}>
-      {/* Hero */}
-      <HeroCarousel />
+      {/* Hero — admin-managed banners (Admin Panel → Assets → Hero Banners) */}
+      <BannerCarousel banners={banners} />
 
       {/* Collections overview */}
       <section className="section-padding" style={{ backgroundColor: 'var(--bg-alt)' }}>
@@ -218,7 +166,7 @@ export default async function Home() {
                 <Link href={`/${section.slug}`} className={`glass-card ${styles.collectionCard}`}>
                   <div className={styles.collectionImgWrap}>
                     <img
-                      src={SECTION_IMAGES[section.slug] || '/collections/our-collections.jpg'}
+                      src={cardArt(section.slug)}
                       alt={`${section.name} collection`}
                       loading="lazy"
                     />
@@ -242,32 +190,33 @@ export default async function Home() {
       </section>
 
       {/* 2027 Collection poster */}
-      <section className="section-padding">
-        <div className="container">
-          <Reveal>
-            <SectionHeading
-              eyebrow="New Arrivals"
-              title="The 2027 Collection"
-              subtitle="A fresh line-up of premium diaries crafted to plan your year in style — thoughtfully designed, beautifully finished, and made for every occasion."
-            />
-          </Reveal>
-        </div>
-        <div className={styles.posterWrap}>
-          <Reveal>
-            <Image
-              src={poster2027}
-              alt="Goodwill Printers — 2027 Collection"
-              className={styles.posterImg}
-              sizes="96vw"
-              priority={false}
-            />
-          </Reveal>
-        </div>
-      </section>
+      {posterUrl && (
+        <section className="section-padding">
+          <div className="container">
+            <Reveal>
+              <SectionHeading
+                eyebrow="New Arrivals"
+                title="The 2027 Collection"
+                subtitle="A fresh line-up of premium diaries crafted to plan your year in style — thoughtfully designed, beautifully finished, and made for every occasion."
+              />
+            </Reveal>
+          </div>
+          <div className={styles.posterWrap}>
+            <Reveal>
+              <img
+                src={posterUrl}
+                alt="Goodwill Printers — 2027 Collection"
+                className={styles.posterImg}
+                loading="lazy"
+              />
+            </Reveal>
+          </div>
+        </section>
+      )}
 
       {/* Corporate gifting range */}
       <section className="section-padding" style={{ backgroundColor: 'var(--bg-alt)', paddingTop: '2.5rem' }}>
-        <div className="container">
+        <div className={`container ${styles.giftContainer}`}>
           <Reveal>
             <SectionHeading
               eyebrow="Gifting"
@@ -277,21 +226,27 @@ export default async function Home() {
           </Reveal>
 
           <div className={styles.giftLayout}>
-            <Reveal className={styles.giftMain}>
-              <Link href="/product/doc-kit-corporate-gifts" className={styles.giftMainImgWrap} aria-label="Doc Kit — view product">
-                <Image src={docKit} alt="Doc Kit — secure travel document organiser" className={styles.giftMainImg} sizes="(max-width: 900px) 90vw, 38vw" />
-                <Image src={docKitHover} alt="" aria-hidden className={`${styles.giftMainImg} ${styles.giftHoverImg}`} sizes="(max-width: 900px) 90vw, 38vw" />
-              </Link>
-            </Reveal>
+            {giftHero && (
+              <Reveal className={styles.giftMain}>
+                <Link href={giftHero.href} className={styles.giftMainImgWrap} aria-label={`${giftHero.name} — view product`}>
+                  <img src={giftHero.image} alt={giftHero.name} className={styles.giftMainImg} loading="lazy" />
+                  {giftHero.hoverImage && (
+                    <img src={giftHero.hoverImage} alt="" aria-hidden className={`${styles.giftMainImg} ${styles.giftHoverImg}`} loading="lazy" />
+                  )}
+                </Link>
+              </Reveal>
+            )}
 
             <div className={styles.giftCards}>
-              {GIFT_ITEMS.map((item, i) => (
-                <Reveal key={item.name} delay={i * 0.08}>
-                  <Link href={`/product/${item.slug}`} className={styles.giftCardLink} aria-label={`${item.name} — view product`}>
+              {giftCards.map((item, i) => (
+                <Reveal key={item.name || i} delay={i * 0.08} className={styles.giftCardReveal}>
+                  <Link href={item.href || '#'} className={styles.giftCardLink} aria-label={`${item.name} — view product`}>
                     <figure className={styles.giftCard}>
                       <div className={styles.giftCardImgWrap}>
-                        <Image src={item.image} alt={`${item.name} — corporate gift`} className={styles.giftCardImg} sizes="(max-width: 900px) 45vw, 20vw" />
-                        <Image src={item.hoverImage} alt="" aria-hidden className={`${styles.giftCardImg} ${styles.giftHoverImg}`} sizes="(max-width: 900px) 45vw, 20vw" />
+                        <img src={item.image} alt={`${item.name} — corporate gift`} className={styles.giftCardImg} loading="lazy" />
+                        {item.hoverImage && (
+                          <img src={item.hoverImage} alt="" aria-hidden className={`${styles.giftCardImg} ${styles.giftHoverImg}`} loading="lazy" />
+                        )}
                       </div>
                       <figcaption className={styles.giftCardBody}>
                         <h4>{item.name}</h4>
@@ -313,66 +268,22 @@ export default async function Home() {
       </section>
 
       {/* Product films — a self-playing reel of our work in motion */}
-      <section className="section-padding">
-        <div className="container">
-          <Reveal>
-            <SectionHeading
-              eyebrow="See It In Action"
-              title="Our Gifts in Motion"
-              subtitle="Our premium gifts, in motion — see each piece come to life, then tap through to explore it and enquire."
-            />
-          </Reveal>
-          <Reveal delay={0.1}>
-            <VideoShowcase />
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ===== Featured products, grouped by section ("Shop by Category") — temporarily commented out =====
-      {showcases.length > 0 && (
+      {showcaseVideos.length > 0 && (
         <section className="section-padding">
           <div className="container">
             <Reveal>
               <SectionHeading
-                eyebrow="Featured Range"
-                title="Shop by Category"
-                subtitle="A glimpse of our premium range across every collection."
+                eyebrow="See It In Action"
+                title="Our Gifts in Motion"
+                subtitle="Our premium gifts, in motion — see each piece come to life, then tap through to explore it and enquire."
               />
             </Reveal>
-
-            {showcases.map((sc) => {
-              const meta = sectionMeta[sc.slug] || {};
-              return (
-                <div key={sc.slug} className={styles.shopBlock}>
-                  <Reveal className={styles.sectionHead}>
-                    <div>
-                      <h3 className={styles.shopTitle}>{meta.name || sc.slug}</h3>
-                      {meta.description && <p className={styles.shopDesc}>{meta.description}</p>}
-                    </div>
-                    <Link href={`/${sc.slug}`} className={styles.viewAll}>
-                      View all <ArrowRight size={15} style={{ verticalAlign: 'middle' }} />
-                    </Link>
-                  </Reveal>
-                  <div className="grid-4">
-                    {sc.products.map((product, i) => (
-                      <Reveal key={product.id} delay={i * 0.05}>
-                        <ProductCard product={product} />
-                      </Reveal>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-
-            <div className="text-center" style={{ marginTop: '3.5rem' }}>
-              <Link href="/products" className="btn-primary">
-                View Full Catalog
-              </Link>
-            </div>
+            <Reveal delay={0.1}>
+              <VideoShowcase videos={showcaseVideos} />
+            </Reveal>
           </div>
         </section>
       )}
-      ===== end "Shop by Category" section ===== */}
 
       {/* Why choose us — journey timeline */}
       <section className="section-padding" style={{ backgroundColor: 'var(--bg-alt)' }}>
@@ -451,8 +362,16 @@ export default async function Home() {
       </section>
 
       {/* Closing CTA */}
-      <section className={styles.cta}>
-        <Image src={elevateBg} alt="" fill sizes="100vw" className={styles.ctaBg} />
+      <section className={styles.cta} style={{ backgroundColor: '#06296e' }}>
+        {ctaBgUrl && (
+          <img
+            src={ctaBgUrl}
+            alt=""
+            aria-hidden
+            className={styles.ctaBg}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+          />
+        )}
         <div className={styles.ctaVeil} />
         <div className="container" style={{ position: 'relative', zIndex: 2 }}>
           <Reveal className="text-center">
