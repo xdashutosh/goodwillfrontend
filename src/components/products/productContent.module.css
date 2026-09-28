@@ -13,7 +13,8 @@
 
 .overview p {
   color: var(--text);
-  line-height: 1.75;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
   margin: 0 0 1rem;
   max-width: 68ch;
 }
@@ -46,13 +47,15 @@
 
 .block h3 {
   color: var(--heading);
-  font-size: 1.09rem;
-  margin-bottom: 0.85rem;
+  font-size: var(--fs-lg);
+  line-height: var(--lh-heading);
+  margin-bottom: 0.9rem;
 }
 
 .block p {
   color: var(--text);
-  line-height: 1.7;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
   max-width: 62ch;
 }
 
@@ -76,6 +79,7 @@
   align-items: flex-start;
   gap: 0.6rem;
   color: var(--text);
+  font-size: var(--fs-base);
   line-height: 1.5;
 }
 
@@ -86,8 +90,9 @@
   border-radius: 50%;
   background: var(--blue-100);
   color: var(--blue);
-  font-size: 0.74rem;
+  font-size: var(--fs-xs);
   font-weight: 700;
+  line-height: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -119,8 +124,15 @@
 
 .specs h3 {
   color: var(--heading);
-  font-size: 1.09rem;
-  margin-bottom: 1rem;
+  font-size: var(--fs-lg);
+  line-height: var(--lh-heading);
+  margin-bottom: 0.75rem;
+}
+
+@media (max-width: 480px) {
+  .specs {
+    padding: 1.35rem 1.25rem;
+  }
 }
 
 .specs dl {
@@ -141,15 +153,18 @@
 
 .specRow dt {
   color: var(--muted);
-  font-size: 0.79rem;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
   flex-shrink: 0;
+  max-width: 45%;
 }
 
 .specRow dd {
   margin: 0;
   color: var(--heading);
   font-weight: 600;
-  font-size: 0.79rem;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
   text-align: right;
 }
 
@@ -170,7 +185,8 @@
 
 .cardHeading {
   color: var(--heading);
-  font-size: 0.98rem;
+  font-size: var(--fs-lg);
+  line-height: var(--lh-heading);
   margin-bottom: 0.7rem;
 }
 
@@ -188,8 +204,8 @@
   align-items: flex-start;
   gap: 0.55rem;
   color: var(--text);
-  font-size: 0.88rem;
-  line-height: 1.45;
+  font-size: var(--fs-base);
+  line-height: 1.5;
 }
 
 .cardSpecs {
@@ -210,7 +226,8 @@
 
 .cardSpecRow dt {
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
   flex-shrink: 0;
   max-width: 45%;
 }
@@ -219,13 +236,14 @@
   margin: 0;
   color: var(--heading);
   font-weight: 600;
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
   text-align: right;
 }
 
 .cardText {
   color: var(--text);
-  font-size: 0.88rem;
-  line-height: 1.6;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
   margin: 0;
 }

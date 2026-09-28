@@ -4,19 +4,24 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Phone, Mail, ChevronDown, Menu, X } from 'lucide-react';
 import { Facebook, Instagram, Twitter, Linkedin, Whatsapp } from '@/components/ui/SocialIcons';
-import { normalizeWhatsApp } from '@/lib/api';
+import { normalizeWhatsApp, formatPhone } from '@/lib/api';
 import styles from './Header.module.css';
 
-export default function Header({ navData, logo }) {
+export default function Header({ navData, logo, brandLogo }) {
   const sections = navData?.sections || [];
-  const logoSrc = logo || '/brand/goodwill-printers.png';
   const contact = navData?.contact || {};
+  const shownEmail = contact.displayEmail || contact.email;
   const socials = navData?.socials || {};
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openSection, setOpenSection] = useState(null);
   const pathname = usePathname();
+
+  // Goodwill Printers on the home page; the Plan.A.Day brand on every inner page.
+  const isHome = pathname === '/';
+  const logoSrc = isHome ? logo || '/brand/goodwill-printers.png' : brandLogo || '/brand/plan-a-day.png';
+  const logoAlt = isHome ? 'Goodwill Printers' : 'Plan.A.Day by Goodwill Printers';
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 40);
@@ -33,7 +38,8 @@ export default function Header({ navData, logo }) {
 
   const isActive = (path) => pathname === path;
   const inSection = (slug) => pathname === `/${slug}` || pathname.startsWith(`/${slug}/`);
-  const telHref = contact.phone ? `tel:${contact.phone.replace(/[^0-9+]/g, '')}` : null;
+  const phone = formatPhone(contact.phone);
+  const telHref = phone.href || null;
   const waNumber = normalizeWhatsApp(contact.whatsapp);
 
   const socialLinks = [
@@ -51,10 +57,10 @@ export default function Header({ navData, logo }) {
         <div className={`container ${styles.topbarInner}`}>
           <div className={styles.topbarGroup}>
             {telHref && (
-              <a href={telHref} className={styles.tbLink}><Phone size={13} /> {contact.phone}</a>
+              <a href={telHref} className={styles.tbLink}><Phone size={15} /> {phone.display}</a>
             )}
             {contact.email && (
-              <a href={`mailto:${contact.email}`} className={styles.tbLink}><Mail size={13} /> {contact.email}</a>
+              <a href={`mailto:${contact.email}`} className={styles.tbLink}><Mail size={15} /> {shownEmail}</a>
             )}
           </div>
           <div className={styles.topbarGroup}>
@@ -68,7 +74,7 @@ export default function Header({ navData, logo }) {
                   aria-label={label}
                   {...(url ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                 >
-                  <Icon size={15} />
+                  <Icon size={16} />
                 </a>
               ))}
             </div>
@@ -79,8 +85,8 @@ export default function Header({ navData, logo }) {
       {/* Tier 2 — main navigation */}
       <div className={styles.mainnav}>
         <div className={`container ${styles.mainnavInner}`}>
-          <Link href="/" className={styles.logo} aria-label="Goodwill Printers — Home">
-            <img src={logoSrc} alt="Goodwill Printers" className={styles.logoImg} />
+          <Link href="/" className={styles.logo} aria-label={`${logoAlt} — Home`}>
+            <img src={logoSrc} alt={logoAlt} className={styles.logoImg} />
           </Link>
 
           <nav className={styles.desktopNav} aria-label="Primary">
@@ -158,8 +164,8 @@ export default function Header({ navData, logo }) {
         <Link href="/contact" className={`btn-primary ${styles.mCta}`}>Enquire Now</Link>
 
         <div className={styles.mContact}>
-          {telHref && <a href={telHref}><Phone size={14} /> {contact.phone}</a>}
-          {contact.email && <a href={`mailto:${contact.email}`}><Mail size={14} /> {contact.email}</a>}
+          {telHref && <a href={telHref}><Phone size={16} /> {phone.display}</a>}
+          {contact.email && <a href={`mailto:${contact.email}`}><Mail size={16} /> {shownEmail}</a>}
         </div>
       </div>
     </header>

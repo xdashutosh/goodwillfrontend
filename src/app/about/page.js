@@ -35,34 +35,34 @@ export default async function About() {
         <div className="container">
           <div className="grid-2">
             <Reveal>
-              <h2 style={{ color: 'var(--text-white)' }}>Our Story</h2>
-              <p style={{ color: 'var(--text-gray)', marginBottom: '1.5rem', fontSize: '1.1rem', whiteSpace: 'pre-line' }}>
+              <h2>Our Story</h2>
+              <p style={{ color: 'var(--text)', marginBottom: '1.5rem', fontSize: 'var(--fs-md)', whiteSpace: 'pre-line' }}>
                 {intro}
               </p>
-              <p style={{ color: 'var(--text-gray)', marginBottom: '2rem' }}>
+              <p style={{ color: 'var(--text)', marginBottom: '2rem' }}>
                 With decades of industry expertise, we specialize in manufacturing and exporting a diverse range of products including diaries, notebooks, organizers, conference folders, address books, and customized corporate gifts designed for modern businesses.
               </p>
 
-              <h3 style={{ color: 'var(--gold-accent)', fontSize: '1.5rem' }}>Craftsmanship Backed by Technology</h3>
-              <p style={{ color: 'var(--text-gray)', marginBottom: '2rem' }}>
+              <h3>Craftsmanship Backed by Technology</h3>
+              <p style={{ color: 'var(--text)', marginBottom: '2rem' }}>
                 Our state-of-the-art in-house manufacturing facility is equipped with advanced printing, paper cutting, folding, sewing, embossing, casing-in, and packaging systems. Combined with the expertise of our skilled team, this enables us to maintain exceptional quality standards across every product we create.
               </p>
             </Reveal>
 
             <Reveal delay={0.12}>
-              <div className="glass-card" style={{ padding: '2.5rem' }}>
-                <h3 style={{ color: 'var(--gold-accent)', fontSize: '1.5rem' }}>Designed Around Your Brand</h3>
-                <p style={{ color: 'var(--text-gray)', marginBottom: '1.5rem' }}>
+              <div className="glass-card" style={{ padding: 'clamp(1.5rem, 5vw, 2.5rem)' }}>
+                <h3>Designed Around Your Brand</h3>
+                <p style={{ color: 'var(--text)', marginBottom: '1.5rem' }}>
                   We understand that every business has unique branding needs. That's why we offer complete customization and personalization solutions — from product colors, sizes, materials, and packaging to logo embossing, branded inserts, and custom designs.
                 </p>
-                <p style={{ color: 'var(--text-gray)' }}>
+                <p style={{ color: 'var(--text)' }}>
                   Whether you are looking for executive gifting solutions or premium corporate stationery, we create products that leave a lasting impression.
                 </p>
               </div>
 
               <div style={{ marginTop: '3rem' }}>
-                <h3 style={{ color: 'var(--text-white)' }}>Our Commitment</h3>
-                <p style={{ color: 'var(--text-gray)' }}>
+                <h3>Our Commitment</h3>
+                <p style={{ color: 'var(--text)' }}>
                   At Goodwill Printers, quality, innovation, and customer satisfaction remain at the heart of everything we do. We are committed to building long-term partnerships by delivering products that combine functionality, elegance, and brand value.
                 </p>
               </div>

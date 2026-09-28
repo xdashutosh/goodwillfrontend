@@ -35,7 +35,7 @@
 
 .heading {
   text-align: center;
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: var(--fs-3xl);
   margin-bottom: 1.75rem;
   text-shadow: 0 2px 12px rgba(255, 255, 255, 0.7);
 }
@@ -44,9 +44,9 @@
   text-align: center;
   max-width: 600px;
   margin: 0 auto 1.5rem;
-  color: var(--text-gray);
-  font-size: 0.95rem;
-  line-height: 1.5;
+  color: var(--muted);
+  font-size: var(--fs-md);
+  line-height: var(--lh-body);
   text-shadow: 0 1px 8px rgba(255, 255, 255, 0.8);
 }
 
@@ -73,12 +73,12 @@
   padding: 1.5rem;
 }
 
-/* Compact form fields so everything fits above the fold */
+/* Compact form fields so everything fits above the fold
+   (text stays at the global input size, --fs-base) */
 .card :global(input),
 .card :global(textarea) {
   padding: 0.55rem 0.85rem;
   margin-bottom: 0;
-  font-size: 0.9rem;
   background-color: rgba(255, 255, 255, 0.55);
   border: 1.5px solid rgba(6, 41, 110, 0.35);
 }
@@ -90,12 +90,12 @@
 
 .card :global(label) {
   margin-bottom: 0.3rem;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
 }
 
 .infoTitle {
-  color: var(--gold-light);
-  font-size: 1.2rem;
+  color: var(--heading);
+  font-size: var(--fs-xl);
   margin-bottom: 1rem;
 }
 
@@ -104,18 +104,20 @@
   align-items: flex-start;
   gap: 0.75rem;
   margin-bottom: 0.9rem;
-  color: var(--text-gray);
-  font-size: 0.9rem;
+  color: var(--text);
+  font-size: var(--fs-base);
+  line-height: 1.5;
 }
 
 .infoIcon {
   flex-shrink: 0;
-  color: var(--gold-accent);
-  margin-top: 2px;
+  color: var(--blue);
+  margin-top: 3px;
 }
 
 .infoItem a {
-  color: var(--gold-accent);
+  color: var(--blue);
+  font-weight: 600;
   text-decoration: none;
   word-break: break-word;
 }
@@ -126,6 +128,7 @@
 
 .infoLabel {
   display: block;
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--text);
   margin-bottom: 0.1rem;
@@ -137,17 +140,20 @@
   gap: 0.5rem;
   margin-top: 0.35rem;
   padding: 0.6rem 1.1rem;
-  background: #25d366;
+  /* Deeper WhatsApp green: white text on the brand #25d366 is only 1.98:1,
+     this shade is 5.08:1 (WCAG AA). */
+  background: #1a7f37;
   color: #fff;
   border-radius: 10px;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: var(--fs-base);
   text-decoration: none;
   transition: var(--transition);
 }
 
 .whatsapp:hover {
-  filter: brightness(0.95);
+  background: #166c2f;
+  color: #fff;
 }
 
 /* Two-up rows inside the form */
@@ -176,4 +182,81 @@
   width: 100%;
   border-radius: 999px;
   margin-top: 0.25rem;
+  /* <button> does not inherit font-size (browser default is 13.33px) */
+  font-size: var(--fs-base);
+}
+
+/* Product being enquired about (shown when arriving from a product page) */
+.productNote {
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  border-radius: 8px;
+  background-color: var(--blue-50);
+  border: 1px solid var(--blue-100);
+  color: var(--blue);
+  font-size: var(--fs-base);
+}
+
+/* Submit result banners */
+.status {
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 8px;
+  font-size: var(--fs-base);
+  font-weight: 600;
+}
+
+.statusSuccess {
+  background-color: #ecfdf5;
+  border: 1px solid #10b981;
+  color: #047857;
+}
+
+.statusError {
+  background-color: #fef2f2;
+  border: 1px solid #ef4444;
+  color: #b91c1c;
+}
+
+/* Link under the address in the info card */
+.mapLink {
+  display: table;
+  margin-top: 0.35rem;
+  font-size: var(--fs-sm);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---- Office & factory map ---- */
+.visit {
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: center;
+  scroll-margin-top: calc(var(--header-height) + 1rem);
+}
+
+@media (min-width: 860px) {
+  .visit {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.9fr);
+  }
+}
+
+.visitAddress {
+  white-space: pre-line;
+  color: var(--text);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
+  margin: 0 0 1.25rem;
+}
+
+.visitMap {
+  height: 380px;
+}
+
+@media (max-width: 600px) {
+  .visitMap {
+    height: 300px;
+  }
 }

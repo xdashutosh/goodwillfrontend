@@ -1,0 +1,225 @@
+/* auto-fit + a small minimum so 4–6 categories fill one row on desktop */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  gap: 1.25rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  color: inherit;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.card:hover {
+  border-color: var(--blue-100);
+  box-shadow: var(--shadow);
+  transform: translateY(-3px);
+  color: inherit;
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.current {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 1px var(--blue);
+}
+
+/* Collage: one large tile + two stacked small tiles */
+.collage {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2px;
+  aspect-ratio: 3 / 2;
+  background: var(--border);
+}
+
+.collage[data-count='1'] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.collage[data-count='2'] {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+/* Images are positioned inside the tile so their intrinsic size never
+   stretches the collage — every card keeps the same 3:2 header. */
+.tile {
+  position: relative;
+  background: #f5f7fb;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.collage[data-count='3'] .tile:first-child {
+  grid-row: 1 / span 2;
+}
+
+.tile img {
+  position: absolute;
+  inset: 0.5rem;
+  width: calc(100% - 1rem);
+  height: calc(100% - 1rem);
+  object-fit: contain;
+  transition: transform 0.4s ease;
+}
+
+.card:hover .tile img {
+  transform: scale(1.05);
+}
+
+.tileEmpty {
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-alt);
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-variant-numeric: lining-nums;
+  font-size: var(--fs-lg);
+  color: var(--heading);
+}
+
+.here {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  background: var(--blue);
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 1rem 1.1rem 1.1rem;
+}
+
+.tags {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.tag {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--blue);
+  background: var(--blue-50);
+  border: 1px solid var(--blue-100);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+}
+
+.name {
+  font-size: var(--fs-lg);
+  line-height: 1.2;
+  margin: 0 0 0.2rem;
+}
+
+.count {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 0.45rem;
+}
+
+.names {
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 0 0 0.9rem;
+}
+
+.more {
+  color: var(--blue);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Inline so the arrow follows the last word when a long name wraps */
+.cta {
+  margin-top: auto;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--blue);
+}
+
+.arrow {
+  display: inline-block;
+  margin-left: 0.3rem;
+  transition: transform 0.25s ease;
+}
+
+.card:hover .arrow {
+  transform: translateX(4px);
+}
+
+/* Phones: compact horizontal rows so all categories fit in about one screen */
+@media (max-width: 600px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  .card {
+    flex-direction: row;
+  }
+
+  .collage,
+  .collage[data-count='2'],
+  .collage[data-count='3'] {
+    flex: 0 0 104px;
+    aspect-ratio: auto;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .collage .tile:not(:first-child) {
+    display: none;
+  }
+
+  .collage[data-count='3'] .tile:first-child {
+    grid-row: auto;
+  }
+
+  .here {
+    top: 0.4rem;
+    left: 0.4rem;
+    padding: 0.1rem 0.45rem;
+  }
+
+  .body {
+    padding: 0.8rem 0.95rem;
+  }
+
+  .names {
+    display: none;
+  }
+
+  .tags {
+    margin-bottom: 0.3rem;
+  }
+}

@@ -7,7 +7,7 @@ import styles from './productContent.module.css';
  * Server-rendered; every field is coerced defensively so malformed/partial
  * JSONB can never crash the page.
  */
-export default function ProductContent({ product }) {
+export default function ProductContent({ product, hideUnique = false, containerClassName = '' }) {
   const content = product?.content && typeof product.content === 'object' ? product.content : {};
 
   const description = typeof product?.description === 'string' ? product.description.trim() : '';
@@ -22,7 +22,8 @@ export default function ProductContent({ product }) {
         .map((s) => ({ label: typeof s.label === 'string' ? s.label : '', value: typeof s.value === 'string' ? s.value : '' }))
         .filter((s) => s.label || s.value)
     : [];
-  const unique = typeof content.unique === 'string' ? content.unique.trim() : '';
+  // The buy box can show the per-design "unique" note instead; don't repeat it here.
+  const unique = !hideUnique && typeof content.unique === 'string' ? content.unique.trim() : '';
   const quality = typeof content.quality === 'string' ? content.quality.trim() : '';
 
   const hasMain = descParas.length || goodPoints.length || unique || quality;
@@ -30,7 +31,7 @@ export default function ProductContent({ product }) {
 
   return (
     <section className={`section-padding ${styles.wrap}`} aria-label={`Details for ${product.name}`}>
-      <div className="container">
+      <div className={`container ${containerClassName}`}>
         <h2 className={styles.sectionTitle}>Product details</h2>
 
         <div className={styles.grid}>

@@ -38,7 +38,7 @@
 
 /* ─── Individual card wrapper ───────────────────────────── */
 .cardWrapper {
-  flex: 0 0 220px;            /* fixed card width; adjust to taste */
+  flex: 0 0 240px;            /* fixed card width — wide enough for the 15px product bar */
 }
 
 /* ─── Card shell ────────────────────────────────────────── */
@@ -95,7 +95,7 @@
   gap: 0.6rem;
   padding: 0.5rem 0.6rem;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(8px);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
 }
@@ -118,17 +118,18 @@
 
 .name {
   font-family: var(--font-inter);
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--heading);
-  line-height: 1.2;
+  line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .tagline {
-  font-size: 0.72rem;
+  font-family: var(--font-inter);
+  font-size: var(--fs-sm);
   color: var(--muted);
   line-height: 1.3;
   white-space: nowrap;
@@ -158,9 +159,10 @@
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   color: #1a1200;
-  font-size: 0.68rem;
+  font-family: var(--font-inter);
+  font-size: var(--fs-xs);
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   pointer-events: none;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
@@ -169,20 +171,27 @@
 /* ─── Responsive card widths ────────────────────────────── */
 @media (max-width: 860px) {
   .cardWrapper {
-    flex: 0 0 180px;
+    flex: 0 0 200px;
   }
 }
 
+/* Phones: drop the thumbnail (the video already shows the product) so the
+   name and tagline get the full width of the bar instead of truncating. */
 @media (max-width: 520px) {
   .cardWrapper {
-    flex: 0 0 140px;
+    flex: 0 0 170px;
   }
   .card {
     aspect-ratio: 3 / 4;
   }
   .product {
-    left: 0.6rem;
-    right: 0.6rem;
-    bottom: 0.6rem;
+    left: 0.5rem;
+    right: 0.5rem;
+    bottom: 0.5rem;
+    gap: 0.4rem;
+    padding: 0.5rem 0.55rem;
+  }
+  .thumb {
+    display: none;
   }
 }

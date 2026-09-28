@@ -318,7 +318,7 @@ export default async function Home() {
               {USPS.map(({ icon: Icon, title, text }, i) => (
                 <Reveal key={title} delay={i * 0.1}>
                   <div className={`${styles.journeyStep} ${i % 2 === 1 ? styles.journeyStepDown : ''}`}>
-                    <span className={styles.journeyGhost}>{i + 1}</span>
+                    <span className={styles.journeyGhost} aria-hidden="true">{i + 1}</span>
                     <span className={styles.journeyNode}>
                       <span className={styles.journeyNodeDot}>
                         <Icon size={18} />
@@ -379,8 +379,8 @@ export default async function Home() {
             <p className={styles.ctaText}>
               Tell us what you need — our team will craft a tailored quote with full customization options.
             </p>
-            <div style={{ marginTop: '2rem' }}>
-              <Link href="/contact" className={styles.ctaBtnWhite} style={{ marginRight: '1rem' }}>
+            <div style={{ marginTop: '2rem', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem' }}>
+              <Link href="/contact" className={styles.ctaBtnWhite}>
                 Request a Quote
               </Link>
               <Link href="/products" className={styles.ctaBtnGhost}>

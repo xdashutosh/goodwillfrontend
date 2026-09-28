@@ -3,7 +3,7 @@ import './globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import WhatsAppFab from '@/components/layout/WhatsAppFab';
-import { API_BASE } from '@/lib/api';
+import { API_BASE, DEFAULT_DISPLAY_EMAIL } from '@/lib/api';
 import { getSiteAssets, assetSlot } from '@/lib/assets';
 
 // Body/UI font — Avenir Next. It's a proprietary (Apple/Linotype) font, not
@@ -81,6 +81,11 @@ async function getNavData() {
       contact: {
         phone: settings.contact_phone || '',
         email: settings.contact_email || '',
+        // What visitors see; mailto links always use `email` above
+        displayEmail: settings.display_email || DEFAULT_DISPLAY_EMAIL,
+        // Office/factory address + map pin (footer "Visit Us")
+        address: settings.contact_address || '',
+        mapCoords: settings.map_coordinates || '',
         whatsapp: settings.whatsapp_number || '',
       },
       socials: {
@@ -102,11 +107,13 @@ export default async function RootLayout({ children }) {
     primary: assetSlot(assets, 'brand', 'logo_primary')?.url || '/brand/goodwill-printers.png',
     footer: assetSlot(assets, 'brand', 'logo_footer')?.url || '/brand/plan-a-day.png',
   };
+  // The header shows Goodwill Printers on the home page and the Plan.A.Day brand
+  // logo (same asset as the footer's) on every other page.
 
   return (
     <html lang="en" className={`${cormorant.variable}`}>
       <body>
-        <Header navData={navData} logo={logos.primary} />
+        <Header navData={navData} logo={logos.primary} brandLogo={logos.footer} />
         <main>{children}</main>
         <Footer socials={navData.socials} contact={navData.contact} logo={logos.footer} />
         <WhatsAppFab number={navData.contact.whatsapp} />

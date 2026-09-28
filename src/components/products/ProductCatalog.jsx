@@ -1,598 +1,578 @@
 'use client';
-import { useState, useEffect, useCallback, useRef } from 'react';
-import Link from 'next/link';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { API_BASE } from '@/lib/api';
+import ProductCard from './ProductCard';
+import styles from './catalog.module.css';
 
-export default function ProductCatalog({ lockedSection = '', lockedCategory = '', basePath = '/products' }) {
+const PAGE_SIZE = 24;
+const DEFAULT_SORT = 'sort_order';
+const SORTS = [
+  { value: 'sort_order', label: 'Recommended' },
+  { value: 'name_asc', label: 'Name: A to Z' },
+  { value: 'name_desc', label: 'Name: Z to A' },
+  { value: 'newest', label: 'Newest first' },
+];
+const FALLBACK_SECTIONS = [
+  { slug: 'diaries', name: 'Diaries' },
+  { slug: 'notebooks', name: 'Notebooks' },
+  { slug: 'organizers', name: 'Organizers' },
+  { slug: 'corporate-gifts', name: 'Corporate Gifts' },
+];
+
+const distinct = (values) => [...new Set(values.filter(Boolean))].sort();
+
+// Does a category come in this size/format? Mirrors the API, where a size filter
+// excludes categories without a size label. Unknown (undefined) labels always fit.
+const labelFits = (label, wanted) => !wanted || label === undefined || label === wanted;
+
+// Page numbers with ellipses: 1 … 4 5 6 … 12
+function pageList(current, total) {
+  const pages = new Set([1, total, current - 1, current, current + 1]);
+  const sorted = [...pages].filter((p) => p >= 1 && p <= total).sort((a, b) => a - b);
+  const out = [];
+  sorted.forEach((p, i) => {
+    if (i > 0 && p - sorted[i - 1] > 1) out.push(`gap-${p}`);
+    out.push(p);
+  });
+  return out;
+}
+
+/**
+ * Filterable, paginated product grid. All state lives in the URL so filtered
+ * views can be shared and survive back/forward.
+ *
+ * Props:
+ *  - lockedSection / lockedCategory: scope the grid (their filters are hidden)
+ *  - basePath: the page URL filters are applied to
+ *  - facets: optional { categories: [{ slug, name, size_label, type_label, count }] }
+ *    from the server-side section catalog. When given, the Category / Size /
+ *    Format options only offer combinations that actually have products.
+ *    Rows may carry section_slug, so an unscoped catalog can narrow them per section.
+ *  - sections: optional [{ slug, name }] for the Section filter (unscoped catalog)
+ *  - initial: optional { products, pagination } — the unfiltered first page, rendered
+ *    straight away (and also in the server HTML via CatalogSkeleton) instead of
+ *    waiting for the first fetch
+ *  - unit: noun for results ("designs" / "products")
+ */
+export default function ProductCatalog({
+  lockedSection = '',
+  lockedCategory = '',
+  basePath = '/products',
+  facets = null,
+  sections = null,
+  initial = null,
+  unit = 'products',
+}) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const topRef = useRef(null);
 
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // No filter/sort/page in the URL → the server-provided first page is exactly what
+  // the API would return, so it can be shown without a fetch.
+  const pristine = !['section', 'category', 'size', 'type', 'coverStyle', 'search', 'sort', 'page'].some((k) => searchParams.get(k));
+  const hasFacets = Boolean(facets?.categories?.length);
+  const useInitial = Boolean(initial?.products?.length && pristine && (hasFacets || lockedCategory));
+
+  const [products, setProducts] = useState(() => (useInitial ? initial.products : []));
+  const [loading, setLoading] = useState(!useInitial);
   const [loadError, setLoadError] = useState(false);
-  const [filters, setFilters] = useState({ sizes: [], types: [], coverStyles: [], categories: [] });
-  const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
-  const [view, setView] = useState('grid'); // grid or list
+  const [apiFilters, setApiFilters] = useState(null);
+  const [pagination, setPagination] = useState(() => (useInitial ? initial.pagination : { page: 1, totalPages: 1, total: 0 }));
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
-  // Whether we've already received the sidebar filter aggregations. The API only
-  // returns them for page 1 by default, so if the visitor landed directly on
-  // page 2+ we explicitly ask for them until we have them.
-  const filtersLoadedRef = useRef(false);
-
-  // Current active filters from URL (locked props take precedence)
+  // Current filters from the URL (locked props take precedence)
   const activeSection = lockedSection || searchParams.get('section') || '';
   const activeCategory = lockedCategory || searchParams.get('category') || '';
   const activeSize = searchParams.get('size') || '';
   const activeType = searchParams.get('type') || '';
   const activeCover = searchParams.get('coverStyle') || '';
   const activeSearch = searchParams.get('search') || '';
-  const activeSort = searchParams.get('sort') || 'newest';
-  const currentPage = parseInt(searchParams.get('page') || '1', 10);
+  const activeSort = searchParams.get('sort') || DEFAULT_SORT;
+  const currentPage = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
 
-  // Whether any user-controllable filter/search is currently applied
-  const hasActiveFilters = ['size', 'type', 'coverStyle', 'search', 'page'].some(
-    (k) => searchParams.get(k)
-  ) || (!lockedSection && !!searchParams.get('section'))
-    || (!lockedCategory && !!searchParams.get('category'));
-
-  const fetchProducts = useCallback(async () => {
-    setLoading(true);
-    try {
-      const query = new URLSearchParams({
-        page: currentPage,
-        sort: activeSort,
-      });
-      if (activeSection) query.append('section', activeSection);
-      if (activeCategory) query.append('category', activeCategory);
-      if (activeSize) query.append('size', activeSize);
-      if (activeType) query.append('type', activeType);
-      if (activeCover) query.append('coverStyle', activeCover);
-      if (activeSearch) query.append('search', activeSearch);
-      // Ask for the filter aggregations if we don't have them yet (e.g. the
-      // visitor deep-linked straight to page 2+, where the API omits them).
-      if (!filtersLoadedRef.current) query.append('withFilters', '1');
-
-      const res = await fetch(`${API_BASE}/api/products?${query.toString()}`);
-      if (!res.ok) {
-        console.warn(`API returned status ${res.status}`);
-        setProducts([]);
-        setLoadError(true);
-        return;
-      }
-      const data = await res.json();
-
-      setLoadError(false);
-      setProducts(data.products || []);
-      setPagination(data.pagination || { page: 1, totalPages: 1, total: 0 });
-      if (data.filters) {
-        setFilters(data.filters);
-        filtersLoadedRef.current = true;
-      }
-    } catch (error) {
-      console.error('Failed to fetch products:', error);
-      setProducts([]);
-      setLoadError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [activeSection, activeCategory, activeSize, activeType, activeCover, activeSearch, activeSort, currentPage]);
-
+  const [query, setQuery] = useState(activeSearch);
+  // Last search value this component wrote to the URL. Lets us tell our own
+  // (debounced) updates apart from external ones like back/forward, so a slow
+  // navigation never overwrites what the visitor is still typing.
+  const lastSearch = useRef(activeSearch);
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
-
-  const updateFilter = (key, value) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value) {
-      params.set(key, value);
-    } else {
-      params.delete(key);
+    if (activeSearch !== lastSearch.current) {
+      lastSearch.current = activeSearch;
+      setQuery(activeSearch);
     }
-    // Reset to page 1 on filter change
-    if (key !== 'page') params.set('page', '1');
+  }, [activeSearch]);
 
-    const qs = params.toString();
-    router.push(qs ? `${basePath}?${qs}` : basePath, { scroll: false });
-  };
+  // ---- URL updates ----
+  // The query string we last navigated to. Updates build on this rather than on the
+  // rendered searchParams, so two quick updates (a filter click while a debounced
+  // search is pending) never overwrite each other before navigation completes.
+  const urlRef = useRef(searchParams.toString());
+  useEffect(() => {
+    urlRef.current = searchParams.toString();
+  }, [searchParams]);
 
-  const clearFilters = () => {
+  const pushParams = useCallback(
+    (patch, { keepPage = false } = {}) => {
+      const params = new URLSearchParams(urlRef.current);
+      Object.entries(patch).forEach(([k, v]) => {
+        if (v) params.set(k, String(v));
+        else params.delete(k);
+      });
+      if (!keepPage) params.delete('page');
+      if (params.get('sort') === DEFAULT_SORT) params.delete('sort');
+      if (params.get('page') === '1') params.delete('page');
+      const qs = params.toString();
+      urlRef.current = qs;
+      router.push(qs ? `${basePath}?${qs}` : basePath, { scroll: false });
+    },
+    [router, basePath]
+  );
+
+  const clearAll = () => {
+    lastSearch.current = '';
+    urlRef.current = '';
+    setQuery('');
     router.push(basePath, { scroll: false });
   };
 
-  // Changing the section also clears any category selection, since the category
-  // options are scoped to the selected section (a stale category would yield 0 results).
-  const updateSection = (value) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value) params.set('section', value);
-    else params.delete('section');
-    params.delete('category');
-    params.set('page', '1');
-    const qs = params.toString();
-    router.push(qs ? `${basePath}?${qs}` : basePath, { scroll: false });
+  const commitSearch = useCallback(
+    (value) => {
+      const q = value.trim();
+      if (q === lastSearch.current) return;
+      lastSearch.current = q;
+      pushParams({ search: q });
+    },
+    [pushParams]
+  );
+
+  // Debounced search-as-you-type
+  useEffect(() => {
+    if (query.trim() === lastSearch.current) return;
+    const t = setTimeout(() => commitSearch(query), 400);
+    return () => clearTimeout(t);
+  }, [query, commitSearch]);
+
+  // ---- Data ----
+  useEffect(() => {
+    if (useInitial) {
+      setProducts(initial.products);
+      setPagination(initial.pagination);
+      setLoadError(false);
+      setLoading(false);
+      return;
+    }
+    const controller = new AbortController();
+    const params = new URLSearchParams({ page: String(currentPage), limit: String(PAGE_SIZE), sort: activeSort });
+    if (activeSection) params.set('section', activeSection);
+    if (activeCategory) params.set('category', activeCategory);
+    if (activeSize) params.set('size', activeSize);
+    if (activeType) params.set('type', activeType);
+    if (activeCover) params.set('coverStyle', activeCover);
+    if (activeSearch) params.set('search', activeSearch);
+    // Filter aggregations only come with page 1 unless asked for explicitly.
+    if (!hasFacets) params.set('withFilters', '1');
+
+    const load = async () => {
+      setLoading(true);
+      // Retry transient failures (cold-starting API host, brief 5xx) before giving up.
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const res = await fetch(`${API_BASE}/api/products?${params.toString()}`, { signal: controller.signal });
+          if (!res.ok && res.status < 500) throw Object.assign(new Error(`HTTP ${res.status}`), { fatal: true });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          setProducts(data.products || []);
+          setPagination(data.pagination || { page: 1, totalPages: 1, total: 0 });
+          if (data.filters) setApiFilters(data.filters);
+          setLoadError(false);
+          setLoading(false);
+          return;
+        } catch (err) {
+          if (controller.signal.aborted) return;
+          if (err.fatal || attempt === 2) break;
+          await new Promise((r) => setTimeout(r, 800 * 2 ** attempt));
+          if (controller.signal.aborted) return;
+        }
+      }
+      setProducts([]);
+      setLoadError(true);
+      setLoading(false);
+    };
+
+    load();
+    return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `initial` is static server data
+  }, [activeSection, activeCategory, activeSize, activeType, activeCover, activeSearch, activeSort, currentPage, hasFacets, useInitial, reloadKey]);
+
+  // ---- Facet options ----
+  // Category metadata: server facets (with size/type labels) or, without them,
+  // the API's category counts — whose size/type are unknown (left undefined).
+  const categoryMeta = useMemo(() => {
+    if (hasFacets) return facets.categories.filter((c) => !activeSection || !c.section_slug || c.section_slug === activeSection);
+    return (apiFilters?.categories || []).map(({ name, slug, count }) => ({ name, slug, count }));
+  }, [hasFacets, facets, apiFilters, activeSection]);
+
+  const fits = (c) => labelFits(c.size_label, activeSize) && labelFits(c.type_label, activeType);
+
+  const selectedCategoryMeta = categoryMeta.find((c) => c.slug === activeCategory) || null;
+
+  // Sizes / formats that have products given the other facet (e.g. Weekly → A4, A6).
+  const sizeOptions = useMemo(() => {
+    const all = hasFacets ? distinct(categoryMeta.map((c) => c.size_label)) : apiFilters?.sizes || [];
+    return all.map((s) => ({
+      value: s,
+      enabled: !hasFacets || categoryMeta.some((c) => c.size_label === s && labelFits(c.type_label, activeType)),
+    }));
+  }, [hasFacets, categoryMeta, apiFilters, activeType]);
+
+  const typeOptions = useMemo(() => {
+    const all = hasFacets ? distinct(categoryMeta.map((c) => c.type_label)) : apiFilters?.types || [];
+    return all.map((t) => ({
+      value: t,
+      enabled: !hasFacets || categoryMeta.some((c) => c.type_label === t && labelFits(c.size_label, activeSize)),
+    }));
+  }, [hasFacets, categoryMeta, apiFilters, activeSize]);
+
+  const sectionOptions = sections?.length ? sections : FALLBACK_SECTIONS;
+  const showCategoryFilter = !lockedCategory && categoryMeta.length > 1;
+  const showSizeFilter = !lockedCategory && sizeOptions.length > 1;
+  const showTypeFilter = !lockedCategory && typeOptions.length > 1;
+  const facetTotal = categoryMeta.reduce((n, c) => n + (c.count || 0), 0);
+  // Single-category pages have nothing to filter but the search — skip the sidebar.
+  const hasSidebar = !lockedSection || showCategoryFilter || showSizeFilter || showTypeFilter;
+
+  // Picking a category drops a size/format it doesn't come in (and vice versa),
+  // so a click never lands on an empty grid.
+  const selectCategory = (slug) => {
+    const meta = categoryMeta.find((c) => c.slug === slug);
+    const patch = { category: slug };
+    if (meta && !labelFits(meta.size_label, activeSize)) patch.size = '';
+    if (meta && !labelFits(meta.type_label, activeType)) patch.type = '';
+    pushParams(patch);
+  };
+  const selectSize = (size) => {
+    const patch = { size };
+    if (selectedCategoryMeta && !labelFits(selectedCategoryMeta.size_label, size)) patch.category = '';
+    pushParams(patch);
+  };
+  const selectType = (type) => {
+    const patch = { type };
+    if (selectedCategoryMeta && !labelFits(selectedCategoryMeta.type_label, type)) patch.category = '';
+    pushParams(patch);
+  };
+  const selectSection = (section) => pushParams({ section, category: '', size: '', type: '' });
+
+  const goToPage = (page) => {
+    pushParams({ page }, { keepPage: true });
+    topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  // ---- Active filter chips ----
+  const sectionName = sectionOptions.find((s) => s.slug === activeSection)?.name || activeSection;
+  const chips = [
+    !lockedSection && activeSection && { key: 'section', label: sectionName, clear: () => selectSection('') },
+    !lockedCategory && activeCategory && { key: 'category', label: selectedCategoryMeta?.name || activeCategory, clear: () => pushParams({ category: '' }) },
+    activeSize && { key: 'size', label: `Size ${activeSize}`, clear: () => pushParams({ size: '' }) },
+    activeType && { key: 'type', label: activeType, clear: () => pushParams({ type: '' }) },
+    activeCover && { key: 'coverStyle', label: `Cover: ${activeCover}`, clear: () => pushParams({ coverStyle: '' }) },
+    activeSearch && { key: 'search', label: `“${activeSearch}”`, clear: () => { setQuery(''); commitSearch(''); } },
+  ].filter(Boolean);
+
+  // The drawer only exists below 900px — close it if the viewport grows past that
+  // (e.g. a tablet rotating) so the scroll lock below is released.
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 900px)');
+    const onChange = () => mq.matches && setDrawerOpen(false);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  // Lock page scroll while the mobile filter drawer is open; Esc closes it.
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e) => e.key === 'Escape' && setDrawerOpen(false);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [drawerOpen]);
+
+  const singularUnit = unit.replace(/s$/, '');
+  const totalPages = pagination.totalPages || 1;
+  const outOfRange = !loading && !loadError && products.length === 0 && currentPage > 1;
+  const from = products.length ? (currentPage - 1) * PAGE_SIZE + 1 : 0;
+  const to = products.length ? from + products.length - 1 : 0;
+
+  const searchBox = (
+    <label className={styles.search}>
+      <Search size={16} aria-hidden="true" />
+      <input
+        type="text"
+        inputMode="search"
+        enterKeyHint="search"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && commitSearch(query)}
+        placeholder={`Search ${unit}…`}
+        aria-label={`Search ${unit}`}
+      />
+      {query && (
+        <button type="button" className={styles.clearQ} onClick={() => { setQuery(''); commitSearch(''); }} aria-label="Clear search">
+          <X size={14} />
+        </button>
+      )}
+    </label>
+  );
+
   return (
-    <div className="catalog-container">
-      {/* Sidebar Filters */}
-      <aside className="sidebar glass-card">
-        <h3>Filters</h3>
-        {hasActiveFilters && (
-          <button onClick={clearFilters} className="clear-btn">Clear All</button>
-        )}
+    <div className={`${styles.catalog} ${hasSidebar ? '' : styles.noSidebar}`} ref={topRef}>
+      {/* ---------- Filters ---------- */}
+      {hasSidebar && (
+      <>
+      <div
+        className={`${styles.backdrop} ${drawerOpen ? styles.backdropOn : ''}`}
+        onClick={() => setDrawerOpen(false)}
+        aria-hidden="true"
+      />
+      <aside className={`${styles.sidebar} ${drawerOpen ? styles.sidebarOpen : ''}`} aria-label="Filters">
+        <div className={styles.sidebarHead}>
+          <h2 className={styles.sidebarTitle}>Filters</h2>
+          {chips.length > 0 && (
+            <button type="button" className={styles.linkBtn} onClick={clearAll}>Clear all</button>
+          )}
+          <button type="button" className={styles.closeBtn} onClick={() => setDrawerOpen(false)} aria-label="Close filters">
+            <X size={18} />
+          </button>
+        </div>
 
-        {!lockedSection && (
-          <div className="filter-group">
-            <h4>Section</h4>
-            <select value={activeSection} onChange={(e) => updateSection(e.target.value)}>
-              <option value="">All Sections</option>
-              <option value="diaries">Diaries</option>
-              <option value="notebooks">Notebooks</option>
-              <option value="organizers">Organizers</option>
-              <option value="corporate-gifts">Corporate Gifts</option>
-            </select>
-          </div>
-        )}
+        <div className={styles.sidebarBody}>
+          <div className={styles.group}>{searchBox}</div>
 
-        {!lockedCategory && filters.categories && filters.categories.length > 0 && (
-          <div className="filter-group">
-            <h4>Category</h4>
-            <select value={activeCategory} onChange={(e) => updateFilter('category', e.target.value)}>
-              <option value="">All Categories</option>
-              {filters.categories.map(cat => (
-                <option key={cat.slug} value={cat.slug}>{cat.name}{typeof cat.count === 'number' ? ` (${cat.count})` : ''}</option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {filters.sizes && filters.sizes.length > 0 && (
-          <div className="filter-group">
-            <h4>Size</h4>
-            <select value={activeSize} onChange={(e) => updateFilter('size', e.target.value)}>
-              <option value="">All Sizes</option>
-              {filters.sizes.map(size => (
-                <option key={size} value={size}>{size}</option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {filters.types && filters.types.length > 0 && (
-          <div className="filter-group">
-            <h4>Type</h4>
-            <select value={activeType} onChange={(e) => updateFilter('type', e.target.value)}>
-              <option value="">All Types</option>
-              {filters.types.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {filters.coverStyles && filters.coverStyles.length > 0 && (
-          <div className="filter-group">
-            <h4>Cover Style</h4>
-            <select value={activeCover} onChange={(e) => updateFilter('coverStyle', e.target.value)}>
-              <option value="">All Styles</option>
-              {filters.coverStyles.map(style => (
-                <option key={style} value={style}>{style}</option>
-              ))}
-            </select>
-          </div>
-        )}
-      </aside>
-
-      {/* Main Content */}
-      <div className="main-content">
-        <div className="catalog-header glass-card">
-          <div className="results-info">
-            Showing {products.length} of {pagination.total} products
-          </div>
-          <div className="catalog-controls">
-            <select value={activeSort} onChange={(e) => updateFilter('sort', e.target.value)} className="sort-select">
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-              <option value="name_asc">Name A-Z</option>
-              <option value="name_desc">Name Z-A</option>
-            </select>
-            <div className="view-toggle">
-              <button className={view === 'grid' ? 'active' : ''} onClick={() => setView('grid')}>Grid</button>
-              <button className={view === 'list' ? 'active' : ''} onClick={() => setView('list')}>List</button>
+          {!lockedSection && (
+            <div className={styles.group} role="group" aria-labelledby="flt-section">
+              <h3 className={styles.groupTitle} id="flt-section">Section</h3>
+              <div className={styles.options}>
+                <button type="button" className={`${styles.option} ${!activeSection ? styles.optionOn : ''}`} onClick={() => selectSection('')}>
+                  <span className={styles.radio} aria-hidden="true" />
+                  <span className={styles.optionLabel}>All sections</span>
+                </button>
+                {sectionOptions.map((s) => (
+                  <button key={s.slug} type="button" className={`${styles.option} ${activeSection === s.slug ? styles.optionOn : ''}`} onClick={() => selectSection(s.slug)} aria-pressed={activeSection === s.slug}>
+                    <span className={styles.radio} aria-hidden="true" />
+                    <span className={styles.optionLabel}>{s.name}</span>
+                  </button>
+                ))}
+              </div>
             </div>
+          )}
+
+          {showCategoryFilter && (
+            <div className={styles.group} role="group" aria-labelledby="flt-category">
+              <h3 className={styles.groupTitle} id="flt-category">Category</h3>
+              <div className={styles.options}>
+                <button type="button" className={`${styles.option} ${!activeCategory ? styles.optionOn : ''}`} onClick={() => selectCategory('')}>
+                  <span className={styles.radio} aria-hidden="true" />
+                  <span className={styles.optionLabel}>All categories</span>
+                  {facetTotal > 0 && <span className={styles.count}>{facetTotal}</span>}
+                </button>
+                {categoryMeta.map((c) => {
+                  const dim = !fits(c);
+                  return (
+                    <button
+                      key={c.slug}
+                      type="button"
+                      className={`${styles.option} ${activeCategory === c.slug ? styles.optionOn : ''} ${dim ? styles.optionDim : ''}`}
+                      onClick={() => selectCategory(c.slug)}
+                      aria-pressed={activeCategory === c.slug}
+                      title={dim ? `Not available in the selected size/format — picking it clears that filter` : undefined}
+                    >
+                      <span className={styles.radio} aria-hidden="true" />
+                      <span className={styles.optionLabel}>{c.name}</span>
+                      {typeof c.count === 'number' && <span className={styles.count}>{c.count}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {showSizeFilter && (
+            <div className={styles.group} role="group" aria-labelledby="flt-size">
+              <h3 className={styles.groupTitle} id="flt-size">Size</h3>
+              <div className={styles.pills}>
+                {sizeOptions.map((s) => (
+                  <button
+                    key={s.value}
+                    type="button"
+                    className={`${styles.pill} ${activeSize === s.value ? styles.pillOn : ''}`}
+                    onClick={() => selectSize(activeSize === s.value ? '' : s.value)}
+                    disabled={!s.enabled && activeSize !== s.value}
+                    aria-pressed={activeSize === s.value}
+                  >
+                    {s.value}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {showTypeFilter && (
+            <div className={styles.group} role="group" aria-labelledby="flt-format">
+              <h3 className={styles.groupTitle} id="flt-format">Format</h3>
+              <div className={styles.pills}>
+                {typeOptions.map((t) => (
+                  <button
+                    key={t.value}
+                    type="button"
+                    className={`${styles.pill} ${activeType === t.value ? styles.pillOn : ''}`}
+                    onClick={() => selectType(activeType === t.value ? '' : t.value)}
+                    disabled={!t.enabled && activeType !== t.value}
+                    aria-pressed={activeType === t.value}
+                  >
+                    {t.value}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className={styles.drawerFoot}>
+          <button type="button" className="btn-primary" onClick={() => setDrawerOpen(false)}>
+            Show {pagination.total} {pagination.total === 1 ? singularUnit : unit}
+          </button>
+        </div>
+      </aside>
+      </>
+      )}
+
+      {/* ---------- Results ---------- */}
+      <div className={styles.results}>
+        <div className={styles.toolbar}>
+          <p className={styles.resultCount} aria-live="polite">
+            {loading ? (
+              'Loading…'
+            ) : products.length ? (
+              <>
+                Showing <strong>{from}–{to}</strong> of <strong>{pagination.total}</strong> {pagination.total === 1 ? singularUnit : unit}
+              </>
+            ) : (
+              `No ${unit} found`
+            )}
+          </p>
+          <div className={styles.toolbarRight}>
+            {!hasSidebar && <div className={styles.toolbarSearch}>{searchBox}</div>}
+            {hasSidebar && (
+              <button type="button" className={styles.filterBtn} onClick={() => setDrawerOpen(true)}>
+                <SlidersHorizontal size={16} aria-hidden="true" />
+                Filters
+                {chips.length > 0 && <span className={styles.filterCount}>{chips.length}</span>}
+              </button>
+            )}
+            <label className={styles.sort}>
+              <span>Sort by</span>
+              <select value={activeSort} onChange={(e) => pushParams({ sort: e.target.value })}>
+                {SORTS.map((s) => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
+              </select>
+            </label>
           </div>
         </div>
 
+        {chips.length > 0 && (
+          <div className={styles.chips}>
+            {chips.map((c) => (
+              <button key={c.key} type="button" className={styles.chip} onClick={c.clear} aria-label={`Remove filter ${c.label}`}>
+                {c.label}
+                <X size={13} aria-hidden="true" />
+              </button>
+            ))}
+            <button type="button" className={styles.linkBtn} onClick={clearAll}>Clear all</button>
+          </div>
+        )}
+
         {loading ? (
-          <div className="products-grid">
+          <div className={styles.grid}>
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="product-card glass-card">
-                <div className="skeleton" style={{ aspectRatio: '1/1', borderRadius: 0 }} />
-                <div style={{ padding: '1.5rem' }}>
-                  <div className="skeleton" style={{ height: 12, width: '55%', marginBottom: 12 }} />
-                  <div className="skeleton" style={{ height: 20, width: '85%', marginBottom: 18 }} />
-                  <div className="skeleton" style={{ height: 38, width: '100%' }} />
+              <div key={i} className={styles.skelCard}>
+                <div className="skeleton" style={{ aspectRatio: '1 / 1', borderRadius: 0 }} />
+                <div style={{ padding: '0.9rem 1rem 1rem' }}>
+                  <div className="skeleton" style={{ height: 10, width: '45%', marginBottom: 10 }} />
+                  <div className="skeleton" style={{ height: 18, width: '80%', marginBottom: 14 }} />
+                  <div className="skeleton" style={{ height: 12, width: '40%' }} />
                 </div>
               </div>
             ))}
           </div>
         ) : loadError ? (
-          <div className="no-results glass-card">
-            <h3>Unable to load products</h3>
-            <p>We couldn&apos;t reach the catalog right now. Please try again in a moment.</p>
-            <button onClick={fetchProducts} className="btn-secondary" style={{ marginTop: '1rem' }}>Retry</button>
+          <div className={styles.state}>
+            <h3>Unable to load {unit}</h3>
+            <p>We couldn&apos;t reach the catalog just now. Please try again in a moment.</p>
+            <button type="button" onClick={() => setReloadKey((k) => k + 1)} className="btn-secondary">Try again</button>
+          </div>
+        ) : outOfRange ? (
+          <div className={styles.state}>
+            <h3>This page doesn&apos;t exist</h3>
+            <p>There are only {totalPages} {totalPages === 1 ? 'page' : 'pages'} of results.</p>
+            <button type="button" onClick={() => pushParams({ page: '' }, { keepPage: true })} className="btn-secondary">Go to the first page</button>
           </div>
         ) : products.length === 0 ? (
-          <div className="no-results glass-card">
-            <h3>No products found</h3>
-            <p>Try adjusting your filters or search criteria.</p>
-            <button onClick={clearFilters} className="btn-secondary" style={{ marginTop: '1rem' }}>Clear Filters</button>
+          <div className={styles.state}>
+            <h3>No {unit} match your selection</h3>
+            {chips.length > 0 ? (
+              <>
+                <p>Try removing a filter or searching for a different name.</p>
+                <button type="button" onClick={clearAll} className="btn-secondary">Clear all filters</button>
+              </>
+            ) : (
+              <p>New designs are added regularly — please check back soon or contact us for the full range.</p>
+            )}
           </div>
         ) : (
-          <div className={`products-${view}`}>
-            {products.map(product => (
-              <Link key={product.id} href={`/product/${product.slug}`} className="product-card">
-                <div className="product-img-wrap">
-                  {product.images && product.images.length > 0 ? (
-                    <img
-                      src={product.images.find(img => img.is_primary)?.thumbnail_url || product.images[0].thumbnail_url}
-                      alt={product.name}
-                      className="product-img"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="no-img">No Image</div>
-                  )}
-                </div>
-                <div className="product-info">
-                  <div className="product-category">{product.section_name} • {product.category_name}</div>
-                  <h3 className="product-title">{product.name}</h3>
-                  {view === 'list' && <p className="product-desc">{(typeof product.description === 'string' ? product.description : '').substring(0, 150)}...</p>}
-
-                  <span className="product-link">View Details<span className="arrow" aria-hidden="true"> →</span></span>
-                </div>
-              </Link>
+          <div className={styles.grid}>
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                eyebrow={lockedCategory ? null : lockedSection ? product.category_name : `${product.section_name} · ${product.category_name}`}
+              />
             ))}
           </div>
         )}
 
-        {/* Pagination */}
-        {pagination.totalPages > 1 && (
-          <div className="pagination">
-            <button 
-              disabled={currentPage === 1} 
-              onClick={() => updateFilter('page', currentPage - 1)}
-              className="page-btn"
-            >
-              Previous
+        {!loading && !loadError && !outOfRange && totalPages > 1 && (
+          <nav className={styles.pagination} aria-label="Pagination">
+            <button type="button" className={styles.pageBtn} disabled={currentPage <= 1} onClick={() => goToPage(currentPage - 1)}>
+              ‹ Prev
             </button>
-            <span className="page-info">Page {currentPage} of {pagination.totalPages}</span>
-            <button 
-              disabled={currentPage === pagination.totalPages} 
-              onClick={() => updateFilter('page', currentPage + 1)}
-              className="page-btn"
-            >
-              Next
+            {pageList(currentPage, totalPages).map((p) =>
+              typeof p === 'string' ? (
+                <span key={p} className={styles.pageGap}>…</span>
+              ) : (
+                <button
+                  key={p}
+                  type="button"
+                  className={`${styles.pageBtn} ${p === currentPage ? styles.pageOn : ''}`}
+                  onClick={() => goToPage(p)}
+                  aria-current={p === currentPage ? 'page' : undefined}
+                >
+                  {p}
+                </button>
+              )
+            )}
+            <button type="button" className={styles.pageBtn} disabled={currentPage >= totalPages} onClick={() => goToPage(currentPage + 1)}>
+              Next ›
             </button>
-          </div>
+          </nav>
         )}
       </div>
-
-      <style jsx>{`
-        .catalog-container {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 1.5rem;
-          align-items: start;
-        }
-
-        @media (min-width: 768px) {
-          .catalog-container {
-            grid-template-columns: 250px 1fr;
-          }
-        }
-
-        .sidebar {
-          padding: 1.5rem;
-          position: sticky;
-          top: 100px;
-          border-radius: 0;
-        }
-
-        /* These are glass-cards but act as static chrome, not interactive
-           cards — cancel the global hover lift so they don't pop. */
-        .sidebar:hover,
-        .catalog-header:hover {
-          transform: none;
-          box-shadow: var(--shadow-sm);
-          border-color: var(--border);
-        }
-
-        .sidebar h3 {
-          margin-bottom: 1rem;
-          font-size: 1.19rem;
-          border-bottom: 1px solid var(--glass-border);
-          padding-bottom: 0.5rem;
-        }
-
-        .clear-btn {
-          background: transparent;
-          border: none;
-          color: var(--text-gray);
-          text-decoration: underline;
-          cursor: pointer;
-          margin-bottom: 1rem;
-          font-family: var(--font-inter);
-          font-size: 0.79rem;
-        }
-
-        .clear-btn:hover {
-          color: var(--gold-accent);
-        }
-
-        .filter-group {
-          margin-bottom: 1.1rem;
-        }
-
-        .filter-group h4 {
-          font-family: var(--font-inter);
-          font-size: 0.84rem;
-          color: var(--gold-light);
-          margin-bottom: 0.5rem;
-        }
-
-        .filter-group select {
-          padding: 0.5rem;
-          font-size: 0.84rem;
-        }
-
-        .catalog-header {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: space-between;
-          align-items: center;
-          padding: 1rem 1.5rem;
-          margin-bottom: 1.25rem;
-          gap: 1rem;
-          border-radius: 0;
-        }
-
-        .catalog-controls {
-          display: flex;
-          gap: 1rem;
-          align-items: center;
-        }
-
-        .sort-select {
-          padding: 0.5rem;
-          width: auto;
-          margin-bottom: 0;
-        }
-
-        .view-toggle {
-          display: flex;
-          background: #eef2f8;
-          border-radius: 10px;
-          overflow: hidden;
-        }
-
-        .view-toggle button {
-          background: transparent;
-          border: none;
-          padding: 0.5rem 1rem;
-          color: var(--text-gray);
-          cursor: pointer;
-          transition: var(--transition);
-        }
-
-        .view-toggle button.active {
-          background: var(--gold-accent);
-          color: var(--primary-dark);
-        }
-
-        .products-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-          gap: 2rem 1.5rem;
-        }
-
-        .products-list {
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-        }
-
-        .product-card {
-          display: flex;
-          flex-direction: column;
-          text-decoration: none;
-          color: inherit;
-        }
-
-        .products-list .product-card {
-          flex-direction: row;
-          gap: 1.5rem;
-          padding: 1rem;
-          border: 1px solid var(--border);
-          border-radius: var(--border-radius);
-          background: var(--surface);
-          transition: var(--transition);
-        }
-
-        .products-list .product-card:hover {
-          border-color: var(--blue-100);
-          box-shadow: var(--shadow);
-        }
-
-        .product-img-wrap {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-          aspect-ratio: 1 / 1;
-          background: #f5f7fb;
-          border-radius: var(--border-radius);
-          overflow: hidden;
-          padding: 0.75rem;
-          transition: var(--transition);
-        }
-
-        .product-card:hover .product-img-wrap {
-          box-shadow: var(--shadow);
-        }
-
-        .products-list .product-img-wrap {
-          width: 200px;
-          aspect-ratio: 1 / 1;
-          flex-shrink: 0;
-        }
-
-        .product-img {
-          max-width: 100%;
-          max-height: 100%;
-          width: auto;
-          height: auto;
-          object-fit: contain;
-          transition: transform 0.4s ease;
-        }
-
-        .product-card:hover .product-img {
-          transform: scale(1.04);
-        }
-
-        .no-img {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          height: 100%;
-          color: var(--text-gray-dark);
-        }
-
-        .product-info {
-          padding: 0.85rem 0.15rem 0;
-          display: flex;
-          flex-direction: column;
-          flex: 1;
-        }
-
-        .product-category {
-          font-size: 0.66rem;
-          font-weight: 600;
-          color: var(--blue);
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-          margin-bottom: 0.4rem;
-        }
-
-        .product-title {
-          font-family: var(--font-cormorant), Georgia, serif;
-          font-size: 1.12rem;
-          font-weight: 600;
-          line-height: 1.25;
-          color: var(--heading);
-          margin-bottom: 0.6rem;
-          transition: var(--transition);
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-          /* Reserve two lines so 1- and 2-line titles keep cards the same height */
-          min-height: 2.5em;
-        }
-
-        .product-card:hover .product-title {
-          color: var(--blue);
-        }
-
-        .product-link {
-          margin-top: auto;
-          align-self: flex-start;
-          font-size: 0.79rem;
-          font-weight: 600;
-          color: var(--blue);
-          background: var(--blue-50);
-          border: 1px solid var(--blue-100);
-          padding: 0.5rem 1.1rem;
-          border-radius: 9999px;
-          display: inline-flex;
-          align-items: center;
-          transition: var(--transition);
-        }
-
-        .product-link .arrow {
-          transition: transform 0.25s ease;
-        }
-
-        /* Pop the button on hover: fill with the brand blue and lift */
-        .product-card:hover .product-link,
-        .product-link:hover {
-          background: var(--blue);
-          color: #ffffff;
-          border-color: var(--blue);
-          transform: translateY(-3px) scale(1.05);
-          box-shadow: 0 10px 20px rgba(6, 41, 110, 0.32);
-        }
-
-        .product-card:hover .product-link .arrow,
-        .product-link:hover .arrow {
-          transform: translateX(4px);
-        }
-
-        .product-desc {
-          color: var(--muted);
-          font-size: 0.84rem;
-          margin-bottom: 0.6rem;
-        }
-
-        .loading {
-          text-align: center;
-          padding: 4rem;
-          color: var(--gold-accent);
-          font-size: 1.14rem;
-        }
-
-        .no-results {
-          text-align: center;
-          padding: 4rem;
-        }
-
-        .pagination {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          gap: 1.5rem;
-          margin-top: 3rem;
-        }
-
-        .page-btn {
-          background: #ffffff;
-          border: 1px solid var(--border);
-          color: var(--text);
-          padding: 0.5rem 1rem;
-          border-radius: 10px;
-          cursor: pointer;
-          transition: var(--transition);
-        }
-
-        .page-btn:not(:disabled):hover {
-          border-color: var(--gold-accent);
-          color: var(--gold-accent);
-        }
-
-        .page-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        @media (max-width: 600px) {
-          .products-list .product-card {
-            flex-direction: column;
-          }
-          .products-list .product-img-wrap {
-            width: 100%;
-          }
-        }
-      `}</style>
     </div>
   );
 }

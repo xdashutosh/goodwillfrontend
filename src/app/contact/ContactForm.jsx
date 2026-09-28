@@ -7,14 +7,18 @@ import styles from './contact.module.css';
 export default function ContactForm() {
   const searchParams = useSearchParams();
   const productId = searchParams.get('product');
+  // Product label passed by the product page ("Serbia — A5 Daily (GP-34)")
+  const productName = productId ? (searchParams.get('name') || '').slice(0, 150) : '';
 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     company: '',
-    subject: '',
-    message: productId ? 'I would like to enquire about a product I viewed on your website.' : '',
+    subject: productName ? `Enquiry: ${productName}` : '',
+    message: productName
+      ? `I would like pricing and customisation options for "${productName}".`
+      : productId ? 'I would like to enquire about a product I viewed on your website.' : '',
   });
   const [status, setStatus] = useState({ type: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,20 +61,16 @@ export default function ContactForm() {
       <h2 className={styles.infoTitle}>Send Us a Message</h2>
       <form onSubmit={handleSubmit}>
         {productId && (
-          <div style={{ padding: '0.75rem 1rem', marginBottom: '1.5rem', borderRadius: '8px', backgroundColor: 'rgba(6, 41, 110, 0.08)', border: '1px solid var(--glass-border)', color: 'var(--gold-light)', fontSize: '0.9rem' }}>
-            This enquiry references a specific product you viewed.
+          <div className={styles.productNote}>
+            {productName ? <>Enquiring about: <strong>{productName}</strong></> : 'This enquiry references a specific product you viewed.'}
           </div>
         )}
 
         {status.message && (
-          <div style={{
-            padding: '1rem',
-            marginBottom: '1.5rem',
-            borderRadius: '8px',
-            backgroundColor: status.type === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-            border: `1px solid ${status.type === 'success' ? '#10b981' : '#ef4444'}`,
-            color: status.type === 'success' ? '#10b981' : '#ef4444',
-          }}>
+          <div
+            role={status.type === 'success' ? 'status' : 'alert'}
+            className={`${styles.status} ${status.type === 'success' ? styles.statusSuccess : styles.statusError}`}
+          >
             {status.message}
           </div>
         )}

@@ -1,13 +1,21 @@
 ﻿'use client';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Facebook, Instagram, Twitter, Linkedin, Whatsapp } from '@/components/ui/SocialIcons';
 import { normalizeWhatsApp } from '@/lib/api';
+import { officeLocation } from '@/lib/location';
+import LocationMap from '@/components/ui/LocationMap';
+import Directions from '@/components/ui/Directions';
 
 export default function Footer({ socials = {}, contact = {}, logo }) {
   const currentYear = new Date().getFullYear();
   const logoSrc = logo || '/brand/plan-a-day.png';
   const email = contact.email || 'tanujdhawangp@gmail.com';
+  const shownEmail = contact.displayEmail || email;
   const waNumber = normalizeWhatsApp(contact.whatsapp);
+  const location = officeLocation({ coords: contact.mapCoords, address: contact.address });
+  // The contact page has its own large map — don't repeat it in the footer there.
+  const showMap = usePathname() !== '/contact';
   const socialLinks = [
     { Icon: Facebook, url: socials.facebook, label: 'Facebook' },
     { Icon: Instagram, url: socials.instagram, label: 'Instagram' },
@@ -68,11 +76,19 @@ export default function Footer({ socials = {}, contact = {}, logo }) {
           <div className="footer-contact">
             <h3>Contact</h3>
             <p><strong>Email:</strong><br/>
-              <a href={`mailto:${email}`}>{email}</a>
+              <a href={`mailto:${email}`}>{shownEmail}</a>
             </p>
             <div className="mt-4">
               <Link href="/contact" className="btn-secondary">Enquire Now</Link>
             </div>
+          </div>
+
+          {/* Office & factory — map + directions in the visitor's maps app */}
+          <div className="footer-visit">
+            <h3>Visit Us</h3>
+            {showMap && <LocationMap location={location} className="footer-map" />}
+            <p className="footer-address">{location.address}</p>
+            <Directions location={location} compact />
           </div>
         </div>
 
@@ -100,12 +116,34 @@ export default function Footer({ socials = {}, contact = {}, logo }) {
           .footer-grid {
             grid-template-columns: 2fr 1fr 1fr;
           }
+
+          .footer-visit {
+            grid-column: span 2;
+          }
         }
 
+        /* Contact column wide enough for the email address on one line at 17px */
         @media (min-width: 1024px) {
           .footer-grid {
-            grid-template-columns: 2fr 1fr 1fr 1fr;
+            grid-template-columns: 1.45fr 0.85fr 0.85fr 1.25fr 1.6fr;
           }
+
+          .footer-visit {
+            grid-column: auto;
+          }
+        }
+
+        .footer-visit :global(.footer-map) {
+          height: 170px;
+          margin-bottom: 0.85rem;
+        }
+
+        .footer-address {
+          white-space: pre-line;
+          color: var(--text);
+          font-size: var(--fs-sm);
+          line-height: 1.55;
+          margin-bottom: 0.85rem;
         }
 
         .logo {
@@ -121,9 +159,10 @@ export default function Footer({ socials = {}, contact = {}, logo }) {
 
         .footer-desc {
           color: var(--muted);
-          max-width: 320px;
+          max-width: 380px;
           margin-top: 0.75rem;
-          font-size: 0.89rem;
+          font-size: var(--fs-base);
+          line-height: var(--lh-body);
         }
 
         .footer-social {
@@ -153,10 +192,14 @@ export default function Footer({ socials = {}, contact = {}, logo }) {
           box-shadow: 0 6px 16px rgba(6, 41, 110, 0.25);
         }
 
+        /* Column headings: small UI headings, so the sans (not the Cormorant display serif) */
         .footer h3 {
-          color: var(--gold-light);
+          color: var(--heading);
           font-family: var(--font-inter);
-          font-size: 1.04rem;
+          font-size: var(--fs-md);
+          font-weight: 700;
+          letter-spacing: 0;
+          line-height: var(--lh-heading);
           margin-bottom: 1rem;
         }
 
@@ -168,24 +211,33 @@ export default function Footer({ socials = {}, contact = {}, logo }) {
           margin-bottom: 0.55rem;
         }
 
-        .footer-links a {
-          color: var(--text-gray);
-          font-size: 0.89rem;
+        /* These links are next/link components, which don't receive the styled-jsx
+           scope class — hence :global(a) so the rules actually apply. */
+        .footer-links :global(a) {
+          color: var(--text);
+          font-size: var(--fs-base);
         }
 
-        .footer-links a:hover {
-          color: var(--gold-accent);
+        .footer-links :global(a:hover) {
+          color: var(--blue);
           padding-left: 5px;
         }
 
         .footer-contact p {
-          color: var(--text-gray);
-          font-size: 0.89rem;
+          color: var(--muted);
+          font-size: var(--fs-base);
           margin-bottom: 0.5rem;
         }
 
+        .footer-contact strong {
+          color: var(--heading);
+          font-weight: 700;
+        }
+
         .footer-contact a {
-          color: var(--gold-accent);
+          color: var(--blue);
+          font-weight: 500;
+          overflow-wrap: anywhere;
         }
 
         .footer-contact a:hover {
@@ -201,7 +253,7 @@ export default function Footer({ socials = {}, contact = {}, logo }) {
           padding: 1rem 0;
           text-align: center;
           color: var(--muted);
-          font-size: 0.79rem;
+          font-size: var(--fs-sm);
         }
       `}</style>
     </footer>

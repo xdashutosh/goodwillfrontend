@@ -16,9 +16,28 @@
   --bg-alt: #f4f7fc;       /* light blue-grey for alternating sections */
   --surface: #ffffff;
   --heading: #06296e;     /* headings/titles use the same blue as the Enquire Now button */
-  --text: #334155;
-  --muted: #64748b;
   --border: #e6e9f2;
+
+  /* Text colours — every one passes WCAG AA (≥ 4.5:1) on white and on --bg.
+     Use --text for reading copy, --muted for secondary copy, --subtle only for
+     placeholders / decorative hints. Never use lighter greys for text. */
+  --text: #1f2937;         /* body copy (≈ 14.7:1) */
+  --muted: #4b5563;        /* secondary copy, captions, meta (≈ 7.6:1) */
+  --subtle: #6b7280;       /* placeholders, disabled hints (≈ 4.8:1) */
+
+  /* Type scale — every font-size on the site should use one of these.
+     13px is the floor (only for short uppercase labels / badges). */
+  --fs-xs: 0.8125rem;      /* 13px — eyebrows, badges, counts */
+  --fs-sm: 0.9375rem;      /* 15px — secondary text, meta, compact UI, breadcrumbs */
+  --fs-base: 1.0625rem;    /* 17px — body copy, buttons, inputs */
+  --fs-md: 1.1875rem;      /* 19px — lead paragraphs, intros */
+  --fs-lg: 1.375rem;       /* 22px — card titles, h4 */
+  --fs-xl: 1.75rem;        /* 28px — h3, sub-section titles */
+  --fs-2xl: clamp(2rem, 3.2vw, 2.5rem);      /* h2 — section titles */
+  --fs-3xl: clamp(2.3rem, 4.5vw, 3.25rem);   /* h1 — page titles */
+  --fs-display: clamp(2.6rem, 5.5vw, 4.5rem); /* hero headlines */
+  --lh-body: 1.65;
+  --lh-heading: 1.2;
 
   --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
   --shadow: 0 10px 28px rgba(16, 24, 40, 0.08);
@@ -35,8 +54,8 @@
   --gold-accent: #06296e;
   --gold-light: #06296e;
   --text-white: #1f2937;
-  --text-gray: #475569;
-  --text-gray-dark: #94a3b8;
+  --text-gray: #4b5563;
+  --text-gray-dark: #6b7280;
   --glass-bg: #ffffff;
   --glass-border: #e6e9f2;
 }
@@ -62,19 +81,42 @@ body {
   background-color: var(--bg);
   color: var(--text);
   font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
-  line-height: 1.6;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   -webkit-font-smoothing: antialiased;
 }
 
+/* Headings: the Cormorant serif for h1–h3 (display), the body sans for h4–h6
+   (small UI headings, where a thin serif gets hard to read). */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-cormorant), Georgia, serif;
+  /* Cormorant defaults to old-style figures, which make sizes like "A5" read as "A₅" */
+  font-variant-numeric: lining-nums;
   font-weight: 600;
+  line-height: var(--lh-heading);
   color: var(--heading);
   margin-bottom: 1rem;
   letter-spacing: -0.01em;
+}
+
+h1 { font-size: var(--fs-3xl); }
+h2 { font-size: var(--fs-2xl); }
+h3 { font-size: var(--fs-xl); }
+
+h4, h5, h6 {
+  font-family: var(--font-inter);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+h4 { font-size: var(--fs-md); }
+h5, h6 { font-size: var(--fs-base); }
+
+p {
+  font-size: inherit;
 }
 
 a {
@@ -128,6 +170,7 @@ main {
   color: #ffffff;
   padding: 0.8rem 1.6rem;
   border-radius: 10px;
+  font-size: var(--fs-base);
   font-weight: 600;
   font-family: var(--font-inter);
   border: none;
@@ -149,6 +192,7 @@ main {
   color: var(--blue);
   padding: 0.8rem 1.6rem;
   border-radius: 10px;
+  font-size: var(--fs-base);
   font-weight: 600;
   font-family: var(--font-inter);
   border: 1px solid var(--blue);
@@ -163,7 +207,8 @@ main {
 }
 
 .section-padding {
-  padding: 3rem 0;
+  /* padding-block, so it never cancels .container's side gutter on the same element */
+  padding-block: 3rem;
 }
 
 .text-center {
@@ -177,7 +222,7 @@ main {
   color: var(--blue);
   border: 1px solid var(--blue-100);
   border-radius: 9999px;
-  font-size: 0.875rem;
+  font-size: var(--fs-sm);
   font-weight: 600;
 }
 
@@ -253,14 +298,14 @@ main {
 }
 
 .hero h1 {
-  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  font-size: var(--fs-display);
   line-height: 1.1;
   margin-bottom: 1.5rem;
   animation: fadeInUp 1s ease-out;
 }
 
 .hero p {
-  font-size: clamp(1.125rem, 2vw, 1.25rem);
+  font-size: var(--fs-md);
   color: var(--muted);
   max-width: 800px;
   margin: 0 auto 2.5rem;
@@ -282,7 +327,12 @@ main {
   }
 }
 
-/* Form Elements */
+/* Form Elements — controls don't inherit the page font by default (buttons would
+   fall back to 13px Arial), so opt them all into the site typography. */
+button, input, select, textarea {
+  font: inherit;
+}
+
 input, textarea, select {
   width: 100%;
   padding: 0.75rem 1rem;
@@ -291,13 +341,13 @@ input, textarea, select {
   border-radius: 10px;
   color: var(--text);
   font-family: var(--font-inter);
-  font-size: 0.95rem;
+  font-size: var(--fs-base);
   margin-bottom: 1rem;
   transition: var(--transition);
 }
 
 input::placeholder, textarea::placeholder {
-  color: #aab2c0;
+  color: var(--subtle);
 }
 
 input:focus, textarea:focus, select:focus {
@@ -316,7 +366,7 @@ label {
 
 /* Breadcrumbs (shared across section, category and product pages) */
 .breadcrumbs {
-  font-size: 0.85rem;
+  font-size: var(--fs-sm);
   color: var(--muted);
 }
 .breadcrumbs ol {
@@ -339,7 +389,7 @@ label {
 }
 .breadcrumbs .separator {
   margin: 0 0.5rem;
-  color: #cbd5e1;
+  color: #9ca3af;
 }
 .breadcrumbs .current {
   color: var(--blue);
@@ -473,21 +523,51 @@ label {
   gap: 2rem;
   grid-template-columns: 1fr;
 }
-@media (min-width: 992px) {
+.prod-skel-side {
+  display: none;
+}
+@media (min-width: 860px) {
   .prod-skel {
-    grid-template-columns: 1.2fr 1fr;
-    gap: 3rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.25rem;
+  }
+}
+@media (min-width: 1200px) {
+  .prod-skel {
+    grid-template-columns: 270px 1fr 1fr;
+    gap: 2rem;
+  }
+  .prod-skel-side {
+    display: block;
   }
 }
 .catalog-skel {
   display: grid;
-  gap: 2rem;
+  gap: 1.75rem;
   align-items: start;
   grid-template-columns: 1fr;
 }
-@media (min-width: 768px) {
+.catalog-skel-side {
+  display: none;
+}
+/* Same tracks as the catalog grid (components/products/catalog.module.css) */
+.catalog-skel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 1.25rem;
+}
+@media (max-width: 480px) {
+  .catalog-skel-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+}
+@media (min-width: 900px) {
   .catalog-skel {
-    grid-template-columns: 250px 1fr;
+    grid-template-columns: 260px minmax(0, 1fr);
+  }
+  .catalog-skel-side {
+    display: block;
   }
 }
 

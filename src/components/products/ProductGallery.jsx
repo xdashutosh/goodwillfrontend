@@ -1,17 +1,51 @@
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 
 export default function ProductGallery({ images, productName }) {
   const safeImages = useMemo(() => images || [], [images]);
 
+  // Images whose file failed to load (e.g. missing from storage) are dropped from
+  // the gallery instead of showing as broken thumbnails.
+  const [failed, setFailed] = useState(() => new Set());
+  // Before giving up on an image, fall back to its other files: the plain JPEG
+  // when the WebP fails, the full image when the thumbnail fails.
+  const [noWebp, setNoWebp] = useState(() => new Set());
+  const [thumbFallback, setThumbFallback] = useState(() => new Set());
+  const add = (setter, id) => setter((prev) => (prev.has(String(id)) ? prev : new Set(prev).add(String(id))));
+  const markFailed = useCallback((id) => add(setFailed, id), []);
+  const onMainError = useCallback(
+    (img) => (img.webp_url && !noWebp.has(String(img.id)) ? add(setNoWebp, img.id) : markFailed(img.id)),
+    [noWebp, markFailed]
+  );
+  const onThumbError = useCallback(
+    (img) => (img.image_url && !thumbFallback.has(String(img.id)) ? add(setThumbFallback, img.id) : markFailed(img.id)),
+    [thumbFallback, markFailed]
+  );
+  const galleryRef = useRef(null);
+
   // Sort so the primary image comes first, then by sort_order
   const sortedImages = useMemo(() => {
-    return [...safeImages].sort((a, b) => {
-      if (a.is_primary && !b.is_primary) return -1;
-      if (!a.is_primary && b.is_primary) return 1;
-      return (a.sort_order || 0) - (b.sort_order || 0);
+    return [...safeImages]
+      .filter((img) => !failed.has(String(img.id)))
+      .sort((a, b) => {
+        if (a.is_primary && !b.is_primary) return -1;
+        if (!a.is_primary && b.is_primary) return 1;
+        return (a.sort_order || 0) - (b.sort_order || 0);
+      });
+  }, [safeImages, failed]);
+
+  // An image that errored before hydration never fires React's onError — catch those after mount.
+  useEffect(() => {
+    galleryRef.current?.querySelectorAll('img[data-img-id]').forEach((el) => {
+      if (!el.complete || el.naturalWidth !== 0) return;
+      const img = safeImages.find((i) => String(i.id) === el.dataset.imgId);
+      if (!img) return;
+      if (el.dataset.kind === 'thumb') onThumbError(img);
+      else onMainError(img);
     });
-  }, [safeImages]);
+    // Only the state right after hydration matters here; later errors go through onError.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Distinct colour variants (only images that declare a colour)
   const colors = useMemo(() => {
@@ -37,8 +71,10 @@ export default function ProductGallery({ images, productName }) {
     );
   }
 
+  // A colour shows its own photos plus the untagged ones (e.g. the inside-page
+  // shots), which apply to every colour.
   const displayed = activeColor
-    ? sortedImages.filter((img) => img.color === activeColor)
+    ? sortedImages.filter((img) => img.color === activeColor || !img.color)
     : sortedImages;
 
   const safeIndex = Math.min(activeIndex, displayed.length - 1);
@@ -49,7 +85,10 @@ export default function ProductGallery({ images, productName }) {
     setActiveIndex(0);
   };
 
+  // Zoom follows a mouse only — on touch screens a tap would otherwise leave the
+  // image stuck at 2x.
   const handleMove = (e) => {
+    if (e.pointerType !== 'mouse') return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
@@ -57,19 +96,22 @@ export default function ProductGallery({ images, productName }) {
   };
 
   return (
-    <div className="gallery-container">
+    <div className="gallery-container" ref={galleryRef}>
       {/* Main Image with hover-to-zoom */}
       <div
         className="main-image-wrap glass-card"
-        onMouseEnter={() => setZoom((z) => ({ ...z, active: true }))}
-        onMouseLeave={() => setZoom({ active: false, x: 50, y: 50 })}
-        onMouseMove={handleMove}
+        onPointerEnter={(e) => e.pointerType === 'mouse' && setZoom((z) => ({ ...z, active: true }))}
+        onPointerLeave={() => setZoom({ active: false, x: 50, y: 50 })}
+        onPointerMove={handleMove}
       >
         <picture>
-          {current.webp_url && <source srcSet={current.webp_url} type="image/webp" />}
+          {current.webp_url && !noWebp.has(String(current.id)) && <source srcSet={current.webp_url} type="image/webp" />}
           <img
             src={current.image_url}
             alt={current.alt_text || productName}
+            data-img-id={current.id}
+            data-kind="main"
+            onError={() => onMainError(current)}
             className="main-image"
             style={{
               transform: zoom.active ? 'scale(2)' : 'scale(1)',
@@ -116,7 +158,14 @@ export default function ProductGallery({ images, productName }) {
               onClick={() => setActiveIndex(idx)}
               aria-label={`View image ${idx + 1}`}
             >
-              <img src={img.thumbnail_url} alt={`Thumbnail ${idx + 1}`} loading="lazy" />
+              <img
+                src={thumbFallback.has(String(img.id)) ? img.image_url : img.thumbnail_url || img.image_url}
+                alt={`Thumbnail ${idx + 1}`}
+                loading="lazy"
+                data-img-id={img.id}
+                data-kind="thumb"
+                onError={() => onThumbError(img)}
+              />
             </button>
           ))}
         </div>
@@ -136,8 +185,8 @@ export default function ProductGallery({ images, productName }) {
           display: flex;
           align-items: center;
           justify-content: center;
-          color: var(--text-gray-dark);
-          font-size: 1.14rem;
+          color: var(--muted);
+          font-size: var(--fs-md);
         }
 
         .main-image-wrap {
@@ -166,13 +215,24 @@ export default function ProductGallery({ images, productName }) {
           position: absolute;
           bottom: 0.75rem;
           right: 0.75rem;
-          font-size: 0.64rem;
+          font-size: var(--fs-xs);
+          font-weight: 600;
+          line-height: 1.4;
           color: #ffffff;
-          background: rgba(22, 35, 92, 0.7);
-          padding: 0.2rem 0.6rem;
+          background: rgba(22, 35, 92, 0.88);
+          padding: 0.25rem 0.7rem;
           border-radius: 999px;
           pointer-events: none;
-          opacity: 0.85;
+        }
+
+        /* Touch screens can't hover — no hint, no zoom cursor */
+        @media (hover: none) {
+          .zoom-hint {
+            display: none;
+          }
+          .main-image-wrap {
+            cursor: default;
+          }
         }
 
         .color-swatches {
@@ -191,13 +251,21 @@ export default function ProductGallery({ images, productName }) {
           border: 2px solid var(--border);
           background: #ffffff;
           color: var(--text);
-          font-size: 0.69rem;
+          font-family: var(--font-inter);
+          font-size: var(--fs-xs);
+          font-weight: 600;
+          line-height: 1;
           cursor: pointer;
           transition: var(--transition);
         }
 
         .swatch {
           width: 32px;
+        }
+
+        /* A colour without a hex shows its name as text — let the pill fit it. */
+        .swatch:not([style]) {
+          width: auto;
         }
 
         .swatch.active,

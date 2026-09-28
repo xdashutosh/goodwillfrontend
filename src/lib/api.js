@@ -16,6 +16,29 @@ export function normalizeWhatsApp(num) {
   return digits.length === 10 ? `91${digits}` : digits;
 }
 
+// Phone number with its country code, for display and for tel: links:
+// "9810350320" → { display: '+91 98103 50320', href: 'tel:+919810350320' }.
+// A bare 10-digit number (or one with a leading 0) is assumed Indian (+91);
+// numbers entered with a country code are kept as they are.
+export function formatPhone(num) {
+  const raw = String(num || '').trim();
+  let digits = raw.replace(/[^0-9]/g, '');
+  if (!digits) return { display: '', href: '' };
+  if (!raw.startsWith('+')) {
+    if (digits.length === 11 && digits.startsWith('0')) digits = digits.slice(1);
+    if (digits.length === 10) digits = `91${digits}`;
+  }
+  const display = digits.length === 12 && digits.startsWith('91')
+    ? `+91 ${digits.slice(2, 7)} ${digits.slice(7)}`
+    : raw.startsWith('+') ? raw.replace(/\s+/g, ' ') : `+${digits}`;
+  return { display, href: `tel:+${digits}` };
+}
+
+// Email address shown on the site. Clicking it still opens the Contact Email from
+// Settings (the inbox that actually receives mail); override the shown address
+// with the "Displayed Email" setting in the Admin Panel.
+export const DEFAULT_DISPLAY_EMAIL = 'contact@planaday.com';
+
 // Public URL of the storefront (used for canonical links and share/WhatsApp links).
 export const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL || 'https://www.plan-a-day.com'

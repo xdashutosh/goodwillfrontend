@@ -1,38 +1,69 @@
-// Full catalog skeleton — mirrors the ProductCatalog layout (filter sidebar + product grid).
-// Used as the Suspense fallback on /products and category pages.
-export default function CatalogSkeleton() {
+import ProductCard from './ProductCard';
+
+/**
+ * Placeholder for ProductCatalog while it loads (the Suspense fallback on the
+ * section, category and /products pages). Mirrors the catalog layout.
+ *
+ * With `initial` ({ products, pagination }) it renders the real first page of
+ * products instead of grey cards — so the server HTML already lists them (for
+ * search engines and slow connections) and nothing shifts when the interactive
+ * catalog takes over.
+ *  - eyebrow: 'category' (category name), 'full' (section · category) or 'none'
+ *  - sidebar: whether the catalog will show its filter sidebar
+ */
+export default function CatalogSkeleton({ initial = null, unit = 'products', eyebrow = 'full', sidebar = true }) {
+  const products = initial?.products || [];
+  const total = initial?.pagination?.total || 0;
+
   return (
-    <div className="catalog-skel">
-      {/* Filter sidebar */}
-      <aside className="glass-card" style={{ padding: '1.5rem' }}>
-        <div className="skeleton" style={{ height: 20, width: '55%', marginBottom: '1.5rem' }} />
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} style={{ marginBottom: '1.5rem' }}>
-            <div className="skeleton" style={{ height: 12, width: 80, marginBottom: 10 }} />
-            <div className="skeleton" style={{ height: 40, width: '100%' }} />
-          </div>
-        ))}
-      </aside>
-
-      {/* Main content */}
-      <div>
-        <div className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.5rem', marginBottom: '2rem', gap: '1rem', flexWrap: 'wrap' }}>
-          <div className="skeleton" style={{ height: 14, width: 180 }} />
-          <div className="skeleton" style={{ height: 34, width: 220 }} />
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1.25rem' }}>
-          {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="glass-card" style={{ overflow: 'hidden' }}>
-              <div className="skeleton" style={{ aspectRatio: '1 / 1', borderRadius: 0 }} />
-              <div style={{ padding: '0.9rem' }}>
-                <div className="skeleton" style={{ height: 11, width: '55%', marginBottom: 10 }} />
-                <div className="skeleton" style={{ height: 16, width: '85%', marginBottom: 14 }} />
-                <div className="skeleton" style={{ height: 32, width: '100%' }} />
-              </div>
-            </div>
+    <div className="catalog-skel" style={sidebar ? undefined : { gridTemplateColumns: 'minmax(0, 1fr)' }}>
+      {sidebar && (
+        <aside className="glass-card catalog-skel-side" style={{ padding: '1.2rem' }}>
+          <div className="skeleton" style={{ height: 20, width: '45%', marginBottom: '1.25rem' }} />
+          <div className="skeleton" style={{ height: 40, width: '100%', marginBottom: '1.5rem' }} />
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="skeleton" style={{ height: 14, width: `${70 - i * 6}%`, marginBottom: 14 }} />
           ))}
+        </aside>
+      )}
+
+      <div style={{ minWidth: 0 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.9rem', marginBottom: '1rem', borderBottom: '1px solid var(--border)', gap: '1rem', flexWrap: 'wrap', minHeight: 52 }}>
+          {products.length ? (
+            <p style={{ margin: 0, fontSize: 'var(--fs-base)', color: 'var(--text)' }}>
+              Showing <strong style={{ color: 'var(--heading)' }}>1–{products.length}</strong> of{' '}
+              <strong style={{ color: 'var(--heading)' }}>{total}</strong> {total === 1 ? unit.replace(/s$/, '') : unit}
+            </p>
+          ) : (
+            <div className="skeleton" style={{ height: 14, width: 200 }} />
+          )}
+          <div className="skeleton" style={{ height: 36, width: 190 }} />
         </div>
+
+        {products.length ? (
+          <div className="catalog-skel-grid">
+            {products.map((p) => (
+              <ProductCard
+                key={p.id}
+                product={p}
+                eyebrow={eyebrow === 'none' ? null : eyebrow === 'category' ? p.category_name : `${p.section_name} · ${p.category_name}`}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="catalog-skel-grid">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="glass-card" style={{ overflow: 'hidden' }}>
+                <div className="skeleton" style={{ aspectRatio: '1 / 1', borderRadius: 0 }} />
+                <div style={{ padding: '0.9rem 1rem 1rem' }}>
+                  <div className="skeleton" style={{ height: 10, width: '45%', marginBottom: 10 }} />
+                  <div className="skeleton" style={{ height: 18, width: '80%', marginBottom: 14 }} />
+                  <div className="skeleton" style={{ height: 12, width: '40%' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

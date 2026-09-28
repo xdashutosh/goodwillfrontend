@@ -25,9 +25,10 @@
   align-items: center;
   gap: 0.7rem;
   font-family: var(--font-inter);
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   font-weight: 700;
-  letter-spacing: 0.16em;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--blue);
   margin-bottom: 1rem;
@@ -48,16 +49,18 @@
 
 .sectionTitle {
   margin: 0 0 1rem;
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
-  line-height: 1.15;
+  font-size: var(--fs-2xl);
+  line-height: var(--lh-heading);
+  text-wrap: balance;
 }
 
 .sectionSubtitle {
   color: var(--muted);
-  font-size: 0.96rem;
-  line-height: 1.7;
+  font-size: var(--fs-md);
+  line-height: var(--lh-body);
   margin: 0 auto;
-  max-width: 620px;
+  max-width: 680px;
+  text-wrap: pretty;
 }
 
 /* Left-aligned variant (e.g. Why Choose Us) */
@@ -84,27 +87,28 @@
 
 .sectionCard h3 {
   margin-bottom: 0.5rem;
-  color: var(--gold-light);
+  color: var(--heading);
 }
 
 .sectionCard p {
-  color: var(--text-gray);
-  font-size: 0.84rem;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
   margin-bottom: 1.5rem;
 }
 
 .exploreLink {
-  color: var(--gold-accent);
-  font-weight: 500;
-  font-size: 0.84rem;
+  color: var(--blue);
+  font-weight: 700;
+  font-size: var(--fs-xs);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
 }
 
 .catCount {
   display: block;
-  font-size: 0.74rem;
-  color: var(--text-gray-dark);
+  font-size: var(--fs-sm);
+  color: var(--muted);
   margin-top: 0.5rem;
 }
 
@@ -170,6 +174,8 @@
 
 /* Node ring + icon that anchors the step to the wave */
 .journeyNode {
+  position: relative;
+  z-index: 1;               /* keep its soft shadow above the step-text plate */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -204,14 +210,19 @@
   transform: scale(1.08) rotate(-4deg);
 }
 
+/* The plate matches the section background so the decorative wave passes
+   behind the step text instead of striking through it. */
 .journeyCard {
-  max-width: 230px;
+  max-width: 250px;
+  padding: 0.4rem 0.75rem 0.5rem;
+  border-radius: 12px;
+  background: var(--bg-alt);
 }
 
 .journeyStepLabel {
   display: inline-block;
   font-family: var(--font-inter);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -221,15 +232,16 @@
 
 .journeyCard h4 {
   font-family: var(--font-inter);
-  font-size: 1rem;
+  font-size: var(--fs-md);
   font-weight: 700;
+  line-height: var(--lh-heading);
   color: var(--heading);
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.5rem;
 }
 
 .journeyCard p {
-  font-size: 0.85rem;
-  line-height: 1.55;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
   color: var(--muted);
   margin: 0;
 }
@@ -298,9 +310,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-gray-dark);
-  font-size: 0.79rem;
-  letter-spacing: 0.02em;
+  color: var(--muted);
+  font-size: var(--fs-sm);
 }
 
 .featuredInfo {
@@ -311,19 +322,19 @@
 }
 
 .featuredCat {
-  font-size: 0.66rem;
-  font-weight: 600;
+  font-size: var(--fs-xs);
+  font-weight: 700;
   color: var(--blue);
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.08em;
 }
 
 .featuredInfo h4 {
   margin: 0.3rem 0 0;
   color: var(--heading);
   font-family: var(--font-inter);
-  font-size: 0.99rem;
-  line-height: 1.35;
+  font-size: var(--fs-md);
+  line-height: var(--lh-heading);
   transition: color 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -338,13 +349,12 @@
 .featuredInfo h4::after {
   content: 'View Details \2192';
   display: block;
-  height: 1.1rem;
+  height: 1.5rem;
   margin-top: 0.6rem;
   font-family: var(--font-inter);
-  font-size: 0.74rem;
+  font-size: var(--fs-sm);
   font-weight: 600;
-  line-height: 1.1rem;
-  letter-spacing: 0.01em;
+  line-height: 1.5rem;
   color: var(--blue);
   opacity: 0;
   transform: translateY(6px);
@@ -462,12 +472,15 @@
 .collectionHead h3 {
   margin: 0;
   color: var(--heading);
-  font-size: 1.09rem;
+  font-size: var(--fs-lg);
+  line-height: var(--lh-heading);
 }
 
 .collectionCount {
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-family: var(--font-inter);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  line-height: 1.4;
   color: var(--blue);
   background: var(--blue-50);
   border: 1px solid var(--blue-100);
@@ -479,7 +492,7 @@
 .collectionLink {
   color: var(--blue);
   font-weight: 600;
-  font-size: 0.84rem;
+  font-size: var(--fs-sm);
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -517,7 +530,8 @@
 
 .shopDesc {
   color: var(--muted);
-  font-size: 0.86rem;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
   max-width: 560px;
   margin: 0;
 }
@@ -525,7 +539,7 @@
 .viewAll {
   color: var(--blue);
   font-weight: 600;
-  font-size: 0.84rem;
+  font-size: var(--fs-sm);
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
@@ -564,7 +578,8 @@
   cursor: pointer;
   padding: 1.15rem 1.4rem;
   font-weight: 600;
-  font-size: 0.94rem;
+  font-size: var(--fs-base);
+  line-height: 1.45;
   color: var(--heading);
   font-family: var(--font-inter);
   list-style: none;
@@ -580,7 +595,7 @@
 
 .faqItem summary::after {
   content: '+';
-  font-size: 1.44rem;
+  font-size: var(--fs-lg);
   font-weight: 400;
   line-height: 1;
   color: var(--blue);
@@ -597,9 +612,9 @@
 
 .faqAnswer {
   padding: 0 1.4rem 1.25rem;
-  color: var(--muted);
-  font-size: 0.88rem;
-  line-height: 1.7;
+  color: var(--text);
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
 }
 
 /* Closing CTA band */
@@ -631,8 +646,10 @@
 }
 
 .ctaText {
-  color: rgba(255, 255, 255, 0.9);
-  max-width: 620px;
+  color: rgba(255, 255, 255, 0.94);
+  font-size: var(--fs-md);
+  line-height: var(--lh-body);
+  max-width: 640px;
   margin: 0 auto;
 }
 
@@ -640,6 +657,8 @@
   display: inline-block;
   padding: 0.8rem 1.6rem;
   border-radius: 10px;
+  font-family: var(--font-inter);
+  font-size: var(--fs-base);
   font-weight: 600;
   background: #ffffff;
   color: var(--brand-navy);
@@ -656,9 +675,11 @@
   display: inline-block;
   padding: 0.8rem 1.6rem;
   border-radius: 10px;
+  font-family: var(--font-inter);
+  font-size: var(--fs-base);
   font-weight: 600;
   color: #ffffff;
-  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
   transition: var(--transition);
 }
 
@@ -834,17 +855,18 @@
 }
 
 .giftCardBody h4 {
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.4rem;
   color: var(--heading);
   font-family: var(--font-inter);
-  font-size: 0.98rem;
-  font-weight: 600;
+  font-size: var(--fs-md);
+  font-weight: 700;
+  line-height: var(--lh-heading);
 }
 
 .giftCardDesc {
   color: var(--muted);
-  font-size: 0.79rem;
-  line-height: 1.55;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
   margin: 0;
 }
 
